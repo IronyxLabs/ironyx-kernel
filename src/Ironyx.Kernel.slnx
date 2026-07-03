@@ -1,4 +1,6 @@
 <Solution>
   <Project Path="Ironyx.Kernel.Abstraction/Ironyx.Kernel.Abstraction.csproj" Id="00ae8c62-e404-4c70-9490-ef836636087d" />
+  <Project Path="Ironyx.Kernel.Execution.Test.Unit/Ironyx.Kernel.Execution.Test.Unit.csproj" Id="1572d304-6921-4a52-94e9-a0c73baa2215" />
+  <Project Path="Ironyx.Kernel.Execution/Ironyx.Kernel.Execution.csproj" Id="8915931d-d0c6-4604-992e-5f4e83a62d28" />
   <Project Path="Ironyx.Kernel.Test.Integration/Ironyx.Kernel.Test.Integration.csproj" Id="8672cd4a-5d63-4944-bf8a-652ad11b4542" />
 </Solution>
