@@ -1,3 +1,4 @@
 <Solution>
+  <Project Path="Ironyx.Kernel.Abstraction/Ironyx.Kernel.Abstraction.csproj" Id="00ae8c62-e404-4c70-9490-ef836636087d" />
   <Project Path="Ironyx.Kernel.Test.Integration/Ironyx.Kernel.Test.Integration.csproj" Id="8672cd4a-5d63-4944-bf8a-652ad11b4542" />
 </Solution>
