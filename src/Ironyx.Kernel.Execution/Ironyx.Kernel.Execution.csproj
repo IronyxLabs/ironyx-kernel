@@ -10,4 +10,8 @@
     <PackageReference Include="MediatR" Version="14.2.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Ironyx.Kernel.Abstraction\Ironyx.Kernel.Abstraction.csproj" />
+  </ItemGroup>
+
 </Project>
