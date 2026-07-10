@@ -1,8 +1,6 @@
-﻿using MediatR;
-
-namespace Ironyx.Kernel
+﻿namespace Ironyx.Kernel
 {
-    internal interface ICommandHandler<TCommand> : IRequestHandler<TCommand>
+    public interface ICommandHandler<TCommand>
         where TCommand : Command
     {
         Task HandleAsync(TCommand command, CancellationToken cancellationToken = default);

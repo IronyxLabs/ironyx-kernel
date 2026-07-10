@@ -1,8 +1,6 @@
-﻿using MediatR;
-
-namespace Ironyx.Kernel
+﻿namespace Ironyx.Kernel
 {
-    public abstract class Command : IRequest
+    public abstract record Command
     {
     }
 }
