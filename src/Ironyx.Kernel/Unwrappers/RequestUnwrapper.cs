@@ -17,12 +17,12 @@ namespace Ironyx.Kernel.Unwrappers
         {
             _logger.LogDebug("Attempting to serialize incoming request");
             var typeValue = metadata.GetRequestType() ?? throw Exceptions.TypeIsNotDefined;
-            _logger.LogDebug("Detected request type: {request-type}", typeValue);
+            _logger.LogDebug("Detected request type: {RequestType}", typeValue);
 
             var type = Type.GetType(typeValue) ?? throw Exceptions.UnknowType;
 
             var command = await request.DeserializeAsync(type, cancellationToken);
-            _logger.LogDebug("Command succesfully serialized");
+            _logger.LogDebug("Command successfully serialized");
             _logger.LogTrace("Command: {@Command}", (object)command);
             return command;
 

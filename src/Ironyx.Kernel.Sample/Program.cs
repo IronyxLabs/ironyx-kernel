@@ -2,8 +2,15 @@
 using Ironyx.Kernel;
 using Ironyx.Kernel.Execution.Dispatchers;
 using Ironyx.Kernel.Sample.Handlers;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddSerilog((_, configuration) =>
+{
+    configuration.ReadFrom.Configuration(builder.Configuration);
+});
+
 
 builder.UseKernel()
     .AddHandler<SampleCommand, SampleCommandHandler>();

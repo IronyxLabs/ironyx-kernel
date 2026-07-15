@@ -1,4 +1,6 @@
 ﻿using Ironyx.Kernel.Builders;
+using Ironyx.Kernel.Execution.Contexts;
+using Ironyx.Kernel.Generators;
 using Ironyx.Kernel.Unwrappers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -14,7 +16,15 @@ namespace Ironyx.Kernel
             builder.Services.AddCommandDispatcher();
 
             builder.Services.AddGrpc();
+
+            builder.Services.AddScoped<RequestContext>();
+            builder.Services.AddTransient<IRequestContext>(provider => provider.GetRequiredService<RequestContext>());
+            builder.Services.AddScoped<IRequestContextAccessor>(provider => provider.GetRequiredService<RequestContext>());
+
+            builder.Services.AddTransient<IUlidGenerator, ULidGenerator>();
+
             builder.Services.AddTransient<IUnwrapper, RequestUnwrapper>();
+            builder.Services.Decorate<IUnwrapper, RequestContextUnwrapper>();
 
             builder.WebHost.ConfigureKestrel(options => options.Listen(System.Net.IPAddress.Loopback, 57400, listenOptions =>
             {

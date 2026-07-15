@@ -8,6 +8,7 @@ namespace Ironyx.Kernel
         public static void AddCommandDispatcher(this IServiceCollection services)
         {
             services.AddTransient<ICommandDispatcher, CommandDispatcher>();
+            services.Decorate<ICommandDispatcher, LogDispatcher>();
         }
     }
 }

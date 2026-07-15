@@ -21,7 +21,7 @@ namespace Ironyx.Kernel.Receivers
 
         public override async Task<Reply> SendAsync(Request request, ServerCallContext context)
         {
-            _logger.LogDebug("Attempting to receive command");
+            _logger.LogDebug("Receiving command");
             try
             {
                 await _commandDispatcher.DispatchAsync(await _unwrapper.UnwrapAsync(request, context.RequestHeaders, context.CancellationToken), context.CancellationToken);
