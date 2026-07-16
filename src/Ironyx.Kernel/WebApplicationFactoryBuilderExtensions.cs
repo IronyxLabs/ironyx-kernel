@@ -7,9 +7,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ironyx.Kernel
 {
+    [ExcludeFromCodeCoverage]
     public static class WebApplicationBuilderExtensions
     {
         public static KernelBuilder UseKernel(this WebApplicationBuilder builder)
