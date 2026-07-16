@@ -71,7 +71,7 @@ namespace Ironyx.Kernel.Receivers
         }
     }
 
-    file class GrpcReply
+    file sealed class GrpcReply
     {
         public Status Status { get; }
         public Reply Reply { get; }

@@ -45,7 +45,7 @@ namespace Ironyx.Kernel.Serializers
                     await writer.FlushAsync(cancellationToken);
                     stream.Position = 0;
 
-                    return await JsonSerializer.DeserializeAsync(stream, type, cancellationToken: cancellationToken);
+                    return await JsonSerializer.DeserializeAsync(stream, type, cancellationToken: cancellationToken) ?? throw new JsonException("Invalid content");
                 }
             }
         }
@@ -53,7 +53,7 @@ namespace Ironyx.Kernel.Serializers
 
     file static class Exceptions
     {
-        public static ArgumentNullException TypeIsNotDefined => new("request-type", "The 'request-type' header is not defined");
+        public static ArgumentNullException TypeIsNotDefined => new("Type", "The request type is not defined");
         public static NotSupportedException UnknowType => new("Unkown request type");
     }
 }

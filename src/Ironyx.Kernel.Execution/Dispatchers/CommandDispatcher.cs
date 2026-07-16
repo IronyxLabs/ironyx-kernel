@@ -17,11 +17,13 @@ namespace Ironyx.Kernel.Execution.Dispatchers
 
         public async Task DispatchAsync<TCommand>(TCommand command, CancellationToken cancellationToken) where TCommand : Command
         {
-            _logger.LogDebug("Dispatching {command}", command.GetType().Name);
-            var handler = _provider.GetService<ICommandHandler<TCommand>>() ?? throw new InvalidOperationException($"Handler not found for command: {command.GetType().FullName}");
+            var type = command.GetType();
+
+            _logger.LogDebug("Dispatching {Command}", type.Name);
+            var handler = _provider.GetService<ICommandHandler<TCommand>>() ?? throw new InvalidOperationException($"Handler not found for command: {type.FullName}");
 
             await handler.HandleAsync(command, cancellationToken);
-            _logger.LogDebug("Dispatching {command} has been finished", command.GetType().Name);
+            _logger.LogDebug("Dispatching {Command} has been finished", type.Name);
         }
     }
 }
