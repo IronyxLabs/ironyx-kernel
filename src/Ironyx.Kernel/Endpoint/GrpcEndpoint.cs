@@ -1,5 +1,6 @@
 ﻿using Grpc.Core;
 using Ironyx.Kernel.Execution.Dispatchers;
+using Ironyx.Kernel.Serializers;
 using Ironyx.Kernel.Unwrappers;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
@@ -8,13 +9,17 @@ namespace Ironyx.Kernel.Receivers
 {
     public class GrpcEndpoint : GenericAPI.GenericAPIBase
     {
-        private readonly IRequestDeserializer _unwrapper;
+        private readonly IRequestDeserializer _deserializer;
+        private readonly IUnwrapper _unwrapper;
+        private readonly IRequestContextAccessor _requestContext;
         private readonly ICommandDispatcher _commandDispatcher;
         private readonly ILogger<GrpcEndpoint> _logger;
 
-        public GrpcEndpoint(IRequestDeserializer unwrapper, ICommandDispatcher commandDispatcher, ILogger<GrpcEndpoint> logger)
+        public GrpcEndpoint(IRequestDeserializer deserilaizer, IUnwrapper unwrapper, IRequestContextAccessor requestContext, ICommandDispatcher commandDispatcher, ILogger<GrpcEndpoint> logger)
         {
+            _deserializer = deserilaizer;
             _unwrapper = unwrapper;
+            _requestContext = requestContext;
             _commandDispatcher = commandDispatcher;
             _logger = logger;
         }
@@ -22,9 +27,12 @@ namespace Ironyx.Kernel.Receivers
         public override async Task<Reply> SendAsync(Request request, ServerCallContext context)
         {
             _logger.LogDebug("Receiving command");
+            await _unwrapper.UnwrapAsync(context.RequestHeaders, context.CancellationToken);
+            using var scope = _logger.BeginScope(_requestContext.CreateLogContext());
+
             try
             {
-                //await _commandDispatcher.DispatchAsync(await _unwrapper.DeserializeAsync(request, context.RequestHeaders, context.CancellationToken), context.CancellationToken);
+                await _commandDispatcher.DispatchAsync(await _deserializer.DeserializeAsync(request, context.CancellationToken), context.CancellationToken);
 
                 _logger.LogDebug("Command accepted");
                 return GrpcReply.Accepted.Reply;
@@ -47,6 +55,19 @@ namespace Ironyx.Kernel.Receivers
                 context.Status = GrpcReply.InvalidBody.Status;
                 return GrpcReply.InvalidBody.Reply;
             }
+        }
+    }
+
+    file static class GrpcEndpointExtensions
+    {
+        public static IDictionary<string, object?> CreateLogContext(this IRequestContextAccessor context)
+        {
+            return new Dictionary<string, object?>()
+            {
+                ["CorrelationId"] = context.CorrelationId,
+                ["CausationId"] = context.CausationId,
+                ["RequestId"] = context.RequestId
+            };
         }
     }
 

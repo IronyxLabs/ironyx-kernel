@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
-namespace Ironyx.Kernel.Unwrappers
+namespace Ironyx.Kernel.Serializers
 {
     public class RequestDeserializer : IRequestDeserializer
     {

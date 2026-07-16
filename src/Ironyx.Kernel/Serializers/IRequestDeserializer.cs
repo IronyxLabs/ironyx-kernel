@@ -1,4 +1,4 @@
-﻿namespace Ironyx.Kernel.Unwrappers
+﻿namespace Ironyx.Kernel.Serializers
 {
     public interface IRequestDeserializer
     {

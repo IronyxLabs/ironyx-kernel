@@ -2,7 +2,7 @@
 using Bogus;
 using Ironyx.Kernel.Execution.Test.Unit.Fakers;
 using Ironyx.Kernel.Execution.Test.Unit.Helpers;
-using Ironyx.Kernel.Unwrappers;
+using Ironyx.Kernel.Serializers;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
