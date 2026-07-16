@@ -6,24 +6,6 @@ namespace Ironyx.Kernel.Execution.Test.Unit.Fakers
 {
     internal static class ServerCallContextFaker
     {
-        public static ServerCallContext CreateSend<TCommand>()
-            where TCommand : Command
-        {
-            var faker = new Faker();
-
-            return TestServerCallContext.Create(
-                "SendAsync",
-                faker.Internet.Ip(),
-                faker.Date.Future(),
-                new Metadata().SetRequestType<TCommand>(),
-                default,
-                faker.Internet.Ip(),
-                new AuthContext(null, []),
-                null,
-                null, null, null);
-        }
-
-
         public static ServerCallContext CreateSend()
         {
             var faker = new Faker();
@@ -33,28 +15,6 @@ namespace Ironyx.Kernel.Execution.Test.Unit.Fakers
                 faker.Internet.Ip(),
                 faker.Date.Future(),
                 [],
-                default,
-                faker.Internet.Ip(),
-                new AuthContext(null, []),
-                null,
-                null, null, null);
-        }
-
-
-        public static ServerCallContext CreateSend(string requestType)
-        {
-            var faker = new Faker();
-
-            var metadata = new Metadata
-            {
-                { "request-type", requestType }
-            };
-
-            return TestServerCallContext.Create(
-                "SendAsync",
-                faker.Internet.Ip(),
-                faker.Date.Future(),
-                metadata,
                 default,
                 faker.Internet.Ip(),
                 new AuthContext(null, []),
