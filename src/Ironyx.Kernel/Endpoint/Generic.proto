@@ -5,7 +5,8 @@ service GenericAPI {
 }
 
 message Request {
-	string body = 1;
+	string type = 1;
+	string content = 2;
 }
 
 message Reply {

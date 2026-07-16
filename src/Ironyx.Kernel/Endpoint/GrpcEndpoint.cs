@@ -8,11 +8,11 @@ namespace Ironyx.Kernel.Receivers
 {
     public class GrpcEndpoint : GenericAPI.GenericAPIBase
     {
-        private readonly IUnwrapper _unwrapper;
+        private readonly IRequestDeserializer _unwrapper;
         private readonly ICommandDispatcher _commandDispatcher;
         private readonly ILogger<GrpcEndpoint> _logger;
 
-        public GrpcEndpoint(IUnwrapper unwrapper, ICommandDispatcher commandDispatcher, ILogger<GrpcEndpoint> logger)
+        public GrpcEndpoint(IRequestDeserializer unwrapper, ICommandDispatcher commandDispatcher, ILogger<GrpcEndpoint> logger)
         {
             _unwrapper = unwrapper;
             _commandDispatcher = commandDispatcher;
@@ -24,7 +24,7 @@ namespace Ironyx.Kernel.Receivers
             _logger.LogDebug("Receiving command");
             try
             {
-                await _commandDispatcher.DispatchAsync(await _unwrapper.UnwrapAsync(request, context.RequestHeaders, context.CancellationToken), context.CancellationToken);
+                //await _commandDispatcher.DispatchAsync(await _unwrapper.DeserializeAsync(request, context.RequestHeaders, context.CancellationToken), context.CancellationToken);
 
                 _logger.LogDebug("Command accepted");
                 return GrpcReply.Accepted.Reply;

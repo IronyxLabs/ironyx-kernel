@@ -23,8 +23,7 @@ namespace Ironyx.Kernel
 
             builder.Services.AddTransient<IUlidGenerator, ULidGenerator>();
 
-            builder.Services.AddTransient<IUnwrapper, RequestUnwrapper>();
-            builder.Services.Decorate<IUnwrapper, RequestContextUnwrapper>();
+            builder.Services.AddTransient<IRequestDeserializer, RequestDeserializer>();
 
             builder.WebHost.ConfigureKestrel(options => options.Listen(System.Net.IPAddress.Loopback, 57400, listenOptions =>
             {

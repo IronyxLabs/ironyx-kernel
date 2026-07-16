@@ -1,40 +1,40 @@
 ﻿using AutoBogus;
+using Bogus;
 using Ironyx.Kernel.Execution.Test.Unit.Fakers;
 using Ironyx.Kernel.Execution.Test.Unit.Helpers;
 using Ironyx.Kernel.Unwrappers;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
-namespace Ironyx.Kernel.Execution.Test.Unit.Unwrappers
+namespace Ironyx.Kernel.Execution.Test.Unit.Serializers
 {
-    public class RequestUnwrapperTest
+    public class RequestDeserializerTest
     {
 
-        private ILogger<RequestUnwrapper> _logger;
+        private ILogger<RequestDeserializer> _logger;
 
-        public RequestUnwrapperTest(ITestOutputHelper outputHelper)
+        public RequestDeserializerTest(ITestOutputHelper outputHelper)
         {
             _logger = new LoggerFactory()
                           .AddXUnit(outputHelper)
-                          .CreateLogger<RequestUnwrapper>();
+                          .CreateLogger<RequestDeserializer>();
         }
 
-        private RequestUnwrapper CreateSUT()
+        private RequestDeserializer CreateSUT()
         {
-            return new RequestUnwrapper(_logger);
+            return new RequestDeserializer(_logger);
         }
 
-        [Fact(DisplayName = "[UNIT][RQU-001]: Unwrap Request")]
+        [Fact(DisplayName = "[UNIT][RQU-001]: Deserialize Request")]
         [Feature("CMD", "Command Handling")]
-        public async Task RequestUnwrapper_UnwrapAsync_UnwrapRequest()
+        public async Task RequestDeserializer_DeserializeAsync_DeserializeRequest()
         {
             // Arrange
             var sut = CreateSUT();
             var command = new AutoFaker<TestCommand>().Generate();
-            var context = ServerCallContextFaker.CreateSend<TestCommand>();
 
             // Act
-            var result = await sut.UnwrapAsync(RequestFaker.Create(command), context.RequestHeaders, default);
+            var result = await sut.DeserializeAsync(new RequestFaker().With(command).Generate(), default);
 
             // Assert
             Assert.Equal(command, result);
@@ -47,11 +47,10 @@ namespace Ironyx.Kernel.Execution.Test.Unit.Unwrappers
             // Arrange
             var sut = CreateSUT();
             var command = new AutoFaker<TestCommand>().Generate();
-            var context = ServerCallContextFaker.CreateSend();
 
             // Act
             // Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(async () => await sut.UnwrapAsync(RequestFaker.Create(command), context.RequestHeaders, default));
+            await Assert.ThrowsAsync<ArgumentNullException>(async () => await sut.DeserializeAsync(new RequestFaker().WithoutRequestType(command).Generate(), default));
         }
 
         [Fact(DisplayName = "[UNIT][RQU-002]: Unknow Type is Defined")]
@@ -61,11 +60,10 @@ namespace Ironyx.Kernel.Execution.Test.Unit.Unwrappers
             // Arrange
             var sut = CreateSUT();
             var command = new AutoFaker<TestCommand>().Generate();
-            var context = ServerCallContextFaker.CreateSend("UnknownType");
 
             // Act
             // Assert
-            await Assert.ThrowsAsync<NotSupportedException>(async () => await sut.UnwrapAsync(RequestFaker.Create(command), context.RequestHeaders, default));
+            await Assert.ThrowsAsync<NotSupportedException>(async () => await sut.DeserializeAsync(new RequestFaker().WithType(new Faker().Random.String2(10)).Generate(), default));
         }
     }
 

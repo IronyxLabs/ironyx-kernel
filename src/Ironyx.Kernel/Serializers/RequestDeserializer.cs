@@ -4,22 +4,22 @@ using System.Text.Json;
 
 namespace Ironyx.Kernel.Unwrappers
 {
-    public class RequestUnwrapper : IUnwrapper
+    public class RequestDeserializer : IRequestDeserializer
     {
-        private readonly ILogger<RequestUnwrapper> _logger;
+        private readonly ILogger<RequestDeserializer> _logger;
 
-        public RequestUnwrapper(ILogger<RequestUnwrapper> logger)
+        public RequestDeserializer(ILogger<RequestDeserializer> logger)
         {
             _logger = logger;
         }
 
-        public async Task<dynamic> UnwrapAsync(Request request, Metadata metadata, CancellationToken cancellationToken)
+        public async Task<dynamic> DeserializeAsync(Request request, CancellationToken cancellationToken)
         {
             _logger.LogDebug("Attempting to serialize incoming request");
-            var typeValue = metadata.GetRequestType() ?? throw Exceptions.TypeIsNotDefined;
-            _logger.LogDebug("Detected request type: {RequestType}", typeValue);
+            if (string.IsNullOrWhiteSpace(request.Type)) throw Exceptions.TypeIsNotDefined;
+            _logger.LogDebug("Detected request type: {RequestType}", request.Type);
 
-            var type = Type.GetType(typeValue) ?? throw Exceptions.UnknowType;
+            var type = Type.GetType(request.Type) ?? throw Exceptions.UnknowType;
 
             var command = await request.DeserializeAsync(type, cancellationToken);
             _logger.LogDebug("Command successfully serialized");
@@ -41,7 +41,7 @@ namespace Ironyx.Kernel.Unwrappers
             {
                 using (var writer = new StreamWriter(stream, leaveOpen: true))
                 {
-                    await writer.WriteAsync(request.Body.AsMemory(), cancellationToken);
+                    await writer.WriteAsync(request.Content.AsMemory(), cancellationToken);
                     await writer.FlushAsync(cancellationToken);
                     stream.Position = 0;
 
