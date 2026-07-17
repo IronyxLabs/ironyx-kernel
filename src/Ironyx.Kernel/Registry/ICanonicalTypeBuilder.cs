@@ -2,7 +2,6 @@
 {
     public interface ICanonicalTypeBuilder
     {
-        void Add<TCommand>()
-            where TCommand : Command;
+        void Add(Type type);
     }
 }

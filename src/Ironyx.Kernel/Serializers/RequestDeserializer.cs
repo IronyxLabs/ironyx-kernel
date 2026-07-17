@@ -44,7 +44,6 @@ namespace Ironyx.Kernel.Serializers
     file static class Exceptions
     {
         public static ArgumentNullException TypeIsNotDefined => new("Type", "The request type is not defined");
-        public static ArgumentNullException VersionIsNotDefined => new("VErsion", "The request version is not defined");
-        public static NotSupportedException UnknowType => new("Unkown request type");
+        public static ArgumentNullException VersionIsNotDefined => new("Version", "The request version is not defined");
     }
 }

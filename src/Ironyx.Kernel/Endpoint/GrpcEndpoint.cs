@@ -3,10 +3,12 @@ using Ironyx.Kernel.Execution.Dispatchers;
 using Ironyx.Kernel.Extractors;
 using Ironyx.Kernel.Serializers;
 using Microsoft.Extensions.Logging;
+using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
 namespace Ironyx.Kernel.Receivers
 {
+    [ExcludeFromCodeCoverage]
     public class GrpcEndpoint : GenericAPI.GenericAPIBase
     {
         private readonly IRequestDeserializer _deserializer;
@@ -37,10 +39,16 @@ namespace Ironyx.Kernel.Receivers
                 _logger.LogDebug("Command accepted");
                 return GrpcReply.Accepted.Reply;
             }
-            catch (ArgumentNullException exception)
+            catch (ArgumentNullException exception) when (exception.ParamName == nameof(envelop.Type))
             {
                 _logger.LogError(exception, "Error during receive command");
                 context.Status = GrpcReply.TypeIsNotDefined.Status;
+                return GrpcReply.TypeIsNotDefined.Reply;
+            }
+            catch (ArgumentNullException exception) when (exception.ParamName == nameof(envelop.Version))
+            {
+                _logger.LogError(exception, "Error during receive command");
+                context.Status = GrpcReply.VersionIsNotDefined.Status;
                 return GrpcReply.TypeIsNotDefined.Reply;
             }
             catch (NotSupportedException exception)
@@ -78,8 +86,10 @@ namespace Ironyx.Kernel.Receivers
 
         public static GrpcReply Accepted => new(new Status(StatusCode.OK, "Ok"),
                                                                 new Reply() { Status = "ACCEPTED" });
-        public static GrpcReply TypeIsNotDefined => new(new Status(StatusCode.InvalidArgument, "The 'request-type' header is not defined"),
-                                                       new Reply() { Status = "ERROR", Error = new Error { Code = "TECH_REQUEST_TYPE_IS_MISSING", Message = "Request Type is defined" } });
+        public static GrpcReply TypeIsNotDefined => new(new Status(StatusCode.InvalidArgument, "Request type is not defined"),
+                                                       new Reply() { Status = "ERROR", Error = new Error { Code = "TECH_REQUEST_TYPE_IS_MISSING", Message = "Request Type is not defined" } });
+        public static GrpcReply VersionIsNotDefined => new(new Status(StatusCode.InvalidArgument, "Version is not defined"),
+                                                       new Reply() { Status = "ERROR", Error = new Error { Code = "TECH_VERSION_IS_MISSING", Message = "Version is not defined" } });
         public static GrpcReply UnknownRequestType => new(new Status(StatusCode.InvalidArgument, "Unknow request type"),
                                                        new Reply() { Status = "ERROR", Error = new Error { Code = "TECH_UNKNOWN_REQUEST_TYPE", Message = "Unknow request type" } });
         public static GrpcReply InvalidBody => new(new Status(StatusCode.InvalidArgument, "Invalid request body"),

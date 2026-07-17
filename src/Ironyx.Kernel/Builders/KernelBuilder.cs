@@ -27,7 +27,7 @@ namespace Ironyx.Kernel.Builders
         public KernelBuilder AddCommand<TCommand>()
             where TCommand : Command
         {
-            _canonicalTypeRegistry.Add<TCommand>();
+            _canonicalTypeRegistry.Add(typeof(TCommand));
 
             return this;
         }

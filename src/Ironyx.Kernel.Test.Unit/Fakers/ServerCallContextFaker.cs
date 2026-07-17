@@ -2,7 +2,7 @@
 using Grpc.Core;
 using Grpc.Core.Testing;
 
-namespace Ironyx.Kernel.Execution.Test.Unit.Fakers
+namespace Ironyx.Kernel.Test.Unit.Fakers
 {
     internal static class ServerCallContextFaker
     {

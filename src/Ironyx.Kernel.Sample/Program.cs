@@ -13,7 +13,7 @@ builder.Services.AddSerilog((_, configuration) =>
 
 
 builder.UseKernel()
-    .AddCommand<SampleCommand>()
+    .AddCommandsFrom<SampleCommand>()
 
     .AddHandler<SampleCommand, SampleCommandHandler>();
 

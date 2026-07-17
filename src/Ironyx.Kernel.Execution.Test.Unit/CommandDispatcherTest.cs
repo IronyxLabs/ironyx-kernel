@@ -1,6 +1,6 @@
 ﻿using AutoBogus;
 using Ironyx.Kernel.Execution.Dispatchers;
-using Ironyx.Testing;
+using Ironyx.Kernel.Test.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
@@ -32,7 +32,7 @@ namespace Ironyx.Kernel.Execution.Test.Unit
         }
 
         [Fact(DisplayName = "[UNIT][CMD-001]: Dispatch Command")]
-        [Feature("CMD", "Command Handling")]
+        [CommandHandlingFeature]
         public async Task CommandDispatcher_DispatchAsync_DispatchCommand()
         {
             // Arrange
@@ -47,7 +47,7 @@ namespace Ironyx.Kernel.Execution.Test.Unit
         }
 
         [Fact(DisplayName = "[UNIT][CMD-002]: Handler not Found")]
-        [Feature("CMD", "Command Handling")]
+        [CommandHandlingFeature]
         public async Task CommandDispatcher_DispatchAsync_HandlerNotFound()
         {
             // Arrange

@@ -27,17 +27,14 @@ namespace Ironyx.Kernel.Registry
             }
         }
 
-        public void Add<TCommand>()
-            where TCommand : Command
+        public void Add(Type type)
         {
-            var type = typeof(TCommand);
-
             var attribute = type.GetCustomAttribute<RequestVersionAttribute>() ?? throw Exceptions.VersionNotDefined(type.FullName!);
 
             var description = CanonicalTypeDescription.Create(type.FullName!, attribute.Version);
             if (Registrations.ContainsKey(description)) throw Exceptions.Conflict(description.Version, description.Type);
 
-            Registrations.Add(description, typeof(TCommand));
+            Registrations.Add(description, type);
         }
     }
 

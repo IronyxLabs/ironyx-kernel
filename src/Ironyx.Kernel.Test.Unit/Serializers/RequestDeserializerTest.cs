@@ -1,8 +1,8 @@
 ﻿using AutoBogus;
 using Ironyx.Kernel.Registry;
 using Ironyx.Kernel.Serializers;
+using Ironyx.Kernel.Test.Features;
 using Ironyx.Kernel.Test.Unit.Fakers;
-using Ironyx.Testing;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit.Abstractions;
@@ -30,7 +30,7 @@ namespace Ironyx.Kernel.Test.Unit.Serializers
         }
 
         [Fact(DisplayName = "[UNIT][RGQ-001]: Deserialize Request")]
-        [Feature("GRE", "gRPC Endpoint")]
+        [GrpcEndpointFeature]
         public async Task RequestDeserializer_DeserializeAsync_DeserializeRequest()
         {
             // Arrange
@@ -47,7 +47,7 @@ namespace Ironyx.Kernel.Test.Unit.Serializers
         }
 
         [Fact(DisplayName = "[UNIT][RGQ-002]: Request Type is not defined")]
-        [Feature("GRE", "gRPC Endpoint")]
+        [GrpcEndpointFeature]
         public async Task RequestDeserializer_DeserializeAsync_RequestTypeIsNotDefined()
         {
             // Arrange
@@ -60,7 +60,7 @@ namespace Ironyx.Kernel.Test.Unit.Serializers
         }
 
         [Fact(DisplayName = "[UNIT][RGQ-003]: Version is not defined")]
-        [Feature("GRE", "gRPC Endpoint")]
+        [GrpcEndpointFeature]
         public async Task RequestDeserializer_DeserializeAsync_VersionIsNotDefined()
         {
             // Arrange

@@ -1,5 +1,5 @@
 ﻿using Ironyx.Kernel.Registry;
-using Ironyx.Testing;
+using Ironyx.Kernel.Test.Features;
 
 namespace Ironyx.Kernel.Test.Unit.Registry
 {
@@ -11,14 +11,14 @@ namespace Ironyx.Kernel.Test.Unit.Registry
         }
 
         [Fact(DisplayName = "[UNIT][CTR-001]: Registrate Command")]
-        [Feature("GRE", "gRPC Endpoint")]
+        [GrpcEndpointFeature]
         public void CanonicalTypeRegistry_Add_RegistrateCommand()
         {
             // Arrange
             var sut = CreateSUT();
 
             // Act
-            sut.Add<TestCommand>();
+            sut.Add(typeof(TestCommand));
 
             // Assert
             Assert.Single(sut.Registrations, r => typeof(TestCommand).FullName.Equals(r.Key.Type)
@@ -27,7 +27,7 @@ namespace Ironyx.Kernel.Test.Unit.Registry
         }
 
         [Fact(DisplayName = "[UNIT][CTR-002]: Version is Not Defined")]
-        [Feature("GRE", "gRPC Endpoint")]
+        [GrpcEndpointFeature]
         public void CanonicalTypeRegistry_Add_VersionIsNotDefined()
         {
             // Arrange
@@ -39,29 +39,29 @@ namespace Ironyx.Kernel.Test.Unit.Registry
         }
 
         [Fact(DisplayName = "[UNIT][CTR-003]: Add Type with Different Version")]
-        [Feature("GRE", "gRPC Endpoint")]
+        [GrpcEndpointFeature]
         public void CanonicalTypeRegistry_Add_AddTypeWithDifferentVersion()
         {
             // Arrange
             var sut = CreateSUT();
 
-            sut.Add<TestCommand>();
+            sut.Add(typeof(TestCommand));
 
             // Act
-            sut.Add<V2.TestCommand>();
+            sut.Add(typeof(V2.TestCommand));
 
             // Assert
             Assert.Collection(sut.Registrations, r => r.Validate<TestCommand>("v1"), r => r.Validate<V2.TestCommand>("v2"));
         }
 
         [Fact(DisplayName = "[UNIT][CTR-004]: Add Same Type")]
-        [Feature("GRE", "gRPC Endpoint")]
+        [GrpcEndpointFeature]
         public void CanonicalTypeRegistry_Add_AddSameType()
         {
             // Arrange
             var sut = CreateSUT();
 
-            sut.Add<TestCommand>();
+            sut.Add(typeof(TestCommand));
 
             // Act
             // Assert
@@ -69,13 +69,13 @@ namespace Ironyx.Kernel.Test.Unit.Registry
         }
 
         [Fact(DisplayName = "[UNIT][CTR-005]: Resolve Runtime Type")]
-        [Feature("GRE", "gRPC Endpoint")]
+        [GrpcEndpointFeature]
         public void CanonicalTypeRegistry_Resolve_ResolveRunetimeType()
         {
             // Arrange
             var sut = CreateSUT();
 
-            sut.Add<TestCommand>();
+            sut.Add(typeof(TestCommand));
 
             // Act
             var type = sut[typeof(TestCommand).FullName!, "v1"];
@@ -85,7 +85,7 @@ namespace Ironyx.Kernel.Test.Unit.Registry
         }
 
         [Fact(DisplayName = "[UNIT][CTR-006]: Attempt to Resolve Unknown Type")]
-        [Feature("GRE", "gRPC Endpoint")]
+        [GrpcEndpointFeature]
         public void CanonicalTypeRegistry_Resolve_AttemptToResolveUnkownType()
         {
             // Arrange
