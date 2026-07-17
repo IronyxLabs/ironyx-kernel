@@ -1,8 +1,8 @@
 ﻿using Ironyx.Kernel.Builders;
 using Ironyx.Kernel.Execution.Contexts;
+using Ironyx.Kernel.Extractors;
 using Ironyx.Kernel.Generators;
 using Ironyx.Kernel.Serializers;
-using Ironyx.Kernel.Unwrappers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -20,7 +20,7 @@ namespace Ironyx.Kernel
 
             builder.Services.AddGrpc();
 
-            builder.Services.AddTransient<IUnwrapper, RequestContextUnwrapper>();
+            builder.Services.AddTransient<IExtractor, RequestContextExtractor>();
 
             builder.Services.AddScoped<RequestContext>();
             builder.Services.AddTransient<IRequestContext>(provider => provider.GetRequiredService<RequestContext>());

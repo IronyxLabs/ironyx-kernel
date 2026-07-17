@@ -1,6 +1,6 @@
 ﻿using AutoBogus;
 using Ironyx.Kernel.Execution.Dispatchers;
-using Ironyx.Kernel.Execution.Test.Unit.Helpers;
+using Ironyx.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;

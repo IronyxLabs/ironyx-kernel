@@ -4,38 +4,38 @@ namespace Ironyx.Kernel.Execution.Test.Unit.Fakers
 {
     internal class RequestFaker
     {
-        private string? _type;
-        private string? _content;
+        //private string? _type;
+        //private string? _content;
 
-        public Request Generate()
-        {
-            return new Request { Type = _type, Content = _content };
-        }
+        //public Request Generate()
+        //{
+        //    return new Request { Type = _type, Content = _content };
+        //}
 
-        public RequestFaker WithoutRequestType<TCommand>(TCommand command)
-            where TCommand : Command
-        {
-            _content = command.Serialize();
+        //public RequestFaker WithoutRequestType<TCommand>(TCommand command)
+        //    where TCommand : Command
+        //{
+        //    _content = command.Serialize();
 
-            return this;
-        }
+        //    return this;
+        //}
 
-        public RequestFaker WithType(string type)
-        {
-            _type = type;
-            _content = "";
+        //public RequestFaker WithType(string type)
+        //{
+        //    _type = type;
+        //    _content = "";
 
-            return this;
-        }
+        //    return this;
+        //}
 
-        public RequestFaker With<TCommand>(TCommand command)
-            where TCommand : Command
-        {
-            _type = command.GetRequestType();
-            _content = command.Serialize();
+        //public RequestFaker With<TCommand>(TCommand command)
+        //    where TCommand : Command
+        //{
+        //    _type = command.GetRequestType();
+        //    _content = command.Serialize();
 
-            return this;
-        }
+        //    return this;
+        //}
     }
 
     file static class RequestFakerExtensions

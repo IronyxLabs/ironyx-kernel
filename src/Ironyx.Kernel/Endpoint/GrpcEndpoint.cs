@@ -1,7 +1,7 @@
 ﻿using Grpc.Core;
 using Ironyx.Kernel.Execution.Dispatchers;
+using Ironyx.Kernel.Extractors;
 using Ironyx.Kernel.Serializers;
-using Ironyx.Kernel.Unwrappers;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -10,29 +10,29 @@ namespace Ironyx.Kernel.Receivers
     public class GrpcEndpoint : GenericAPI.GenericAPIBase
     {
         private readonly IRequestDeserializer _deserializer;
-        private readonly IUnwrapper _unwrapper;
+        private readonly IExtractor _extractor;
         private readonly IRequestContextAccessor _requestContext;
         private readonly ICommandDispatcher _commandDispatcher;
         private readonly ILogger<GrpcEndpoint> _logger;
 
-        public GrpcEndpoint(IRequestDeserializer deserilaizer, IUnwrapper unwrapper, IRequestContextAccessor requestContext, ICommandDispatcher commandDispatcher, ILogger<GrpcEndpoint> logger)
+        public GrpcEndpoint(IRequestDeserializer deserilaizer, IExtractor extractor, IRequestContextAccessor requestContext, ICommandDispatcher commandDispatcher, ILogger<GrpcEndpoint> logger)
         {
             _deserializer = deserilaizer;
-            _unwrapper = unwrapper;
+            _extractor = extractor;
             _requestContext = requestContext;
             _commandDispatcher = commandDispatcher;
             _logger = logger;
         }
 
-        public override async Task<Reply> SendAsync(Request request, ServerCallContext context)
+        public override async Task<Reply> SendAsync(Envelop envelop, ServerCallContext context)
         {
             _logger.LogDebug("Receiving command");
-            await _unwrapper.UnwrapAsync(context.RequestHeaders, context.CancellationToken);
+            await _extractor.ExtractAsync(context.RequestHeaders, context.CancellationToken);
             using var scope = _logger.BeginScope(_requestContext.CreateLogContext());
 
             try
             {
-                await _commandDispatcher.DispatchAsync(await _deserializer.DeserializeAsync(request, context.CancellationToken), context.CancellationToken);
+                //await _commandDispatcher.DispatchAsync(await _deserializer.DeserializeAsync(request, context.CancellationToken), context.CancellationToken);
 
                 _logger.LogDebug("Command accepted");
                 return GrpcReply.Accepted.Reply;

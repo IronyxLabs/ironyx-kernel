@@ -1,6 +1,5 @@
 ﻿using Grpc.Core;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace Ironyx.Kernel.Serializers
 {
@@ -13,19 +12,20 @@ namespace Ironyx.Kernel.Serializers
             _logger = logger;
         }
 
-        public async Task<dynamic> DeserializeAsync(Request request, CancellationToken cancellationToken)
+        public async Task<dynamic> DeserializeAsync(Envelop envelop, CancellationToken cancellationToken)
         {
             _logger.LogDebug("Attempting to serialize incoming request");
-            if (string.IsNullOrWhiteSpace(request.Type)) throw Exceptions.TypeIsNotDefined;
-            _logger.LogDebug("Detected request type: {RequestType}", request.Type);
+            if (string.IsNullOrWhiteSpace(envelop.Type)) throw Exceptions.TypeIsNotDefined;
+            _logger.LogDebug("Detected request type: {RequestType}", envelop.Type);
 
-            var type = Type.GetType(request.Type) ?? throw Exceptions.UnknowType;
+            var type = Type.GetType(envelop.Type) ?? throw Exceptions.UnknowType;
 
-            var command = await request.DeserializeAsync(type, cancellationToken);
-            _logger.LogDebug("Command successfully serialized");
-            _logger.LogTrace("Command: {@Command}", (object)command);
-            return command;
+            //var command = await envelop.DeserializeAsync(type, cancellationToken);
+            //_logger.LogDebug("Command successfully serialized");
+            //_logger.LogTrace("Command: {@Command}", (object)command);
+            //return command;
 
+            return null;
         }
     }
 
@@ -35,20 +35,20 @@ namespace Ironyx.Kernel.Serializers
         {
             return metadata.SingleOrDefault(m => m.Key == "request-type")?.Value;
         }
-        public static async Task<dynamic> DeserializeAsync(this Request request, Type type, CancellationToken cancellationToken)
-        {
-            using (var stream = new MemoryStream())
-            {
-                using (var writer = new StreamWriter(stream, leaveOpen: true))
-                {
-                    await writer.WriteAsync(request.Content.AsMemory(), cancellationToken);
-                    await writer.FlushAsync(cancellationToken);
-                    stream.Position = 0;
+        //public static async Task<dynamic> DeserializeAsync(this Request request, Type type, CancellationToken cancellationToken)
+        //{
+        //    using (var stream = new MemoryStream())
+        //    {
+        //        using (var writer = new StreamWriter(stream, leaveOpen: true))
+        //        {
+        //            await writer.WriteAsync(request.Content.AsMemory(), cancellationToken);
+        //            await writer.FlushAsync(cancellationToken);
+        //            stream.Position = 0;
 
-                    return await JsonSerializer.DeserializeAsync(stream, type, cancellationToken: cancellationToken) ?? throw new JsonException("Invalid content");
-                }
-            }
-        }
+        //            return await JsonSerializer.DeserializeAsync(stream, type, cancellationToken: cancellationToken) ?? throw new JsonException("Invalid content");
+        //        }
+        //    }
+        //}
     }
 
     file static class Exceptions

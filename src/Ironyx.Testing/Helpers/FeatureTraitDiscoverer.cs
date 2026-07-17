@@ -1,7 +1,7 @@
 ﻿using Xunit.Abstractions;
 using Xunit.Sdk;
 
-namespace Ironyx.Kernel.Execution.Test.Unit.Helpers
+namespace Ironyx.Testing.Helpers
 {
     public class FeatureTraitDiscoverer : ITraitDiscoverer
     {
