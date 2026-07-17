@@ -2,6 +2,7 @@
 using Ironyx.Kernel.Execution.Contexts;
 using Ironyx.Kernel.Extractors;
 using Ironyx.Kernel.Generators;
+using Ironyx.Kernel.Registry;
 using Ironyx.Kernel.Serializers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -22,6 +23,11 @@ namespace Ironyx.Kernel
 
             builder.Services.AddTransient<IExtractor, RequestContextExtractor>();
 
+            var canonicalTypeRegistry = new CanonicalTypeRegistry();
+            builder.Services.AddSingleton(_ => canonicalTypeRegistry);
+            builder.Services.AddTransient<ICanonicalTypeBuilder>(p => p.GetRequiredService<CanonicalTypeRegistry>());
+            builder.Services.AddTransient<IRuntimeTypeResolver>(p => p.GetRequiredService<CanonicalTypeRegistry>());
+
             builder.Services.AddScoped<RequestContext>();
             builder.Services.AddTransient<IRequestContext>(provider => provider.GetRequiredService<RequestContext>());
             builder.Services.AddScoped<IRequestContextAccessor>(provider => provider.GetRequiredService<RequestContext>());
@@ -35,7 +41,7 @@ namespace Ironyx.Kernel
                 listenOptions.Protocols = HttpProtocols.Http2;
             }));
 
-            return new KernelBuilder(builder);
+            return new KernelBuilder(builder, canonicalTypeRegistry);
         }
     }
 }

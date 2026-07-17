@@ -13,6 +13,8 @@ builder.Services.AddSerilog((_, configuration) =>
 
 
 builder.UseKernel()
+    .AddCommand<SampleCommand>()
+
     .AddHandler<SampleCommand, SampleCommandHandler>();
 
 var app = builder.Build();

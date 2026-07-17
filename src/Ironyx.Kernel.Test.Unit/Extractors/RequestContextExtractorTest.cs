@@ -31,7 +31,7 @@ namespace Ironyx.Kernel.Test.Unit.Extractors
         }
 
         [Fact(DisplayName = "[UNIT][RCE-001] - Generate Request Id")]
-        [Feature("GRE", "GRPC Endpoint")]
+        [Feature("GRE", "gRPC Endpoint")]
         public async Task RequestContextExtractor_ExtractAsync_GenerateRequestId()
         {
             // Arrange
@@ -48,7 +48,7 @@ namespace Ironyx.Kernel.Test.Unit.Extractors
         }
 
         [Fact(DisplayName = "[UNIT][RCE-002] - Get Correlation Id")]
-        [Feature("GRE", "GRPC Endpoint")]
+        [Feature("GRE", "gRPC Endpoint")]
         public async Task RequestContextExtractor_ExtractAsync_GetCorrelationId()
         {
             // Arrange
@@ -63,7 +63,7 @@ namespace Ironyx.Kernel.Test.Unit.Extractors
         }
 
         [Fact(DisplayName = "[UNIT][RCE-003] - Generate Correlation Id")]
-        [Feature("GRE", "GRPC Endpoint")]
+        [Feature("GRE", "gRPC Endpoint")]
         public async Task RequestContextExtractor_ExtractAsync_GenerateCorrelationId()
         {
             // Arrange
@@ -80,7 +80,7 @@ namespace Ironyx.Kernel.Test.Unit.Extractors
         }
 
         [Fact(DisplayName = "[UNIT][RCE-004] - Get Causation Id")]
-        [Feature("GRE", "GRPC Endpoint")]
+        [Feature("GRE", "gRPC Endpoint")]
         public async Task RequestContextExtractor_ExtractAsync_GetCausationId()
         {
             // Arrange
@@ -95,7 +95,7 @@ namespace Ironyx.Kernel.Test.Unit.Extractors
         }
 
         [Fact(DisplayName = "[UNIT][RCE-005] - Causation Id not Found")]
-        [Feature("GRE", "GRPC Endpoint")]
+        [Feature("GRE", "gRPC Endpoint")]
         public async Task RequestContextExtractor_ExtractAsync_CausationIdNotFound()
         {
             // Arrange
