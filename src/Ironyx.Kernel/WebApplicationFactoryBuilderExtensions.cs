@@ -18,6 +18,7 @@ namespace Ironyx.Kernel
         public static KernelBuilder UseKernel(this WebApplicationBuilder builder)
         {
             builder.Services.AddCommandDispatcher();
+            builder.Services.AddQueryDispatcher();
 
             builder.Services.AddGrpc();
 

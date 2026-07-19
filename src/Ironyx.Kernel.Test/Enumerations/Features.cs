@@ -11,4 +11,9 @@ namespace Ironyx.Kernel.Test.Features
     {
         public CommandHandlingFeatureAttribute() : base("CMD", "Command Handling") { }
     }
+
+    public class QueryHandlingFeatureAttribute : FeatureAttribute
+    {
+        public QueryHandlingFeatureAttribute() : base("QRY", "Query Handling") { }
+    }
 }

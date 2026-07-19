@@ -15,14 +15,16 @@ namespace Ironyx.Kernel.Receivers
         private readonly IExtractor _extractor;
         private readonly IRequestContextAccessor _requestContext;
         private readonly ICommandDispatcher _commandDispatcher;
+        private readonly IQueryDispatcher _queryDispatcher;
         private readonly ILogger<GrpcEndpoint> _logger;
 
-        public GrpcEndpoint(IRequestDeserializer deserilaizer, IExtractor extractor, IRequestContextAccessor requestContext, ICommandDispatcher commandDispatcher, ILogger<GrpcEndpoint> logger)
+        public GrpcEndpoint(IRequestDeserializer deserilaizer, IExtractor extractor, IRequestContextAccessor requestContext, ICommandDispatcher commandDispatcher, IQueryDispatcher queryDispatcher, ILogger<GrpcEndpoint> logger)
         {
             _deserializer = deserilaizer;
             _extractor = extractor;
             _requestContext = requestContext;
             _commandDispatcher = commandDispatcher;
+            _queryDispatcher = queryDispatcher;
             _logger = logger;
         }
 
@@ -64,6 +66,13 @@ namespace Ironyx.Kernel.Receivers
                 return GrpcReply.InvalidBody.Reply;
             }
         }
+
+        public override async Task<Reply> GetAsync(Envelop envelop, ServerCallContext context)
+        {
+            var query = await _deserializer.DeserializeAsync(envelop, context.CancellationToken);
+            var result = await _queryDispatcher.DispatchAsync(query, context.CancellationToken);
+            return GrpcReply.Ok(JsonSerializer.Serialize(result)).Reply;
+        }
     }
 
     file static class GrpcEndpointExtensions
@@ -94,6 +103,8 @@ namespace Ironyx.Kernel.Receivers
                                                        new Reply() { Status = "ERROR", Error = new Error { Code = "TECH_UNKNOWN_REQUEST_TYPE", Message = "Unknow request type" } });
         public static GrpcReply InvalidBody => new(new Status(StatusCode.InvalidArgument, "Invalid request body"),
                                                        new Reply() { Status = "ERROR", Error = new Error { Code = "TECH_INVALID_REQUEST_BODY", Message = "Invalid request body" } });
+        public static GrpcReply Ok(string data) => new(new Status(StatusCode.OK, "Ok"),
+                                                                new Reply() { Status = "OK", Data = data });
 
         public GrpcReply(Status status, Reply reply)
         {

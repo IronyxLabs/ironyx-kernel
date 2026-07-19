@@ -19,6 +19,16 @@ namespace Ironyx.Kernel.Test.Unit.Fakers
             return this;
         }
 
+        public EnvelopFaker Use<TQuery, TResult>(TQuery query)
+            where TQuery : Query<TResult>
+        {
+            _type = typeof(TQuery).FullName;
+            _version = typeof(TQuery).GetAttribute<RequestVersionAttribute>().Version;
+            _payload = JsonSerializer.Serialize(query);
+
+            return this;
+        }
+
         public EnvelopFaker WithoutType()
         {
             _type = null;

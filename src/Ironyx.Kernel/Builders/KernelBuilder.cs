@@ -1,4 +1,5 @@
-﻿using Ironyx.Kernel.Registry;
+﻿using Ironyx.Kernel.Execution;
+using Ironyx.Kernel.Registry;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -24,10 +25,27 @@ namespace Ironyx.Kernel.Builders
             return this;
         }
 
+        public KernelBuilder AddHandler<TQuery, TResult, TQueryHandler>()
+            where TQuery : Query<TResult>
+            where TQueryHandler : class, IQueryHandler<TQuery, TResult>
+        {
+            _builder.Services.AddTransient<IQueryHandler<TQuery, TResult>, TQueryHandler>();
+
+            return this;
+        }
+
         public KernelBuilder AddCommand<TCommand>()
             where TCommand : Command
         {
             _canonicalTypeRegistry.Add(typeof(TCommand));
+
+            return this;
+        }
+
+        public KernelBuilder AddQuery<TQuery, TResult>()
+            where TQuery : Query<TResult>
+        {
+            _canonicalTypeRegistry.Add(typeof(TQuery));
 
             return this;
         }

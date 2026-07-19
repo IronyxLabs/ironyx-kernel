@@ -10,7 +10,11 @@ namespace Ironyx.Kernel
         public static void AddCommandDispatcher(this IServiceCollection services)
         {
             services.AddTransient<ICommandDispatcher, CommandDispatcher>();
-            services.Decorate<ICommandDispatcher, LogDispatcher>();
+        }
+
+        public static void AddQueryDispatcher(this IServiceCollection services)
+        {
+            services.AddTransient<IQueryDispatcher, QueryDispatcher>();
         }
     }
 }

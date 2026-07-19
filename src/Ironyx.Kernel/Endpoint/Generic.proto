@@ -2,6 +2,7 @@
 
 service GenericAPI {
 	rpc SendAsync (Envelop) returns (Reply);
+	rpc GetAsync (Envelop) returns (Reply);
 }
 
 message Envelop {

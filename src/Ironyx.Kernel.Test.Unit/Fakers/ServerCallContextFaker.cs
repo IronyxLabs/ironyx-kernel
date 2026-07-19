@@ -21,6 +21,22 @@ namespace Ironyx.Kernel.Test.Unit.Fakers
                 null,
                 null, null, null);
         }
+
+        public static ServerCallContext CreateGet()
+        {
+            var faker = new Faker();
+
+            return TestServerCallContext.Create(
+                "GetAsync",
+                faker.Internet.Ip(),
+                faker.Date.Future(),
+                [],
+                default,
+                faker.Internet.Ip(),
+                new AuthContext(null, []),
+                null,
+                null, null, null);
+        }
     }
 
     file static class ServerCallContextFakerExtensions

@@ -35,7 +35,7 @@ namespace Ironyx.Kernel.Test.Unit.Registry
 
             // Act
             // Assert
-            Assert.Throws<ArgumentException>(() => sut.Add<TestCommandWithoutVersion>());
+            Assert.Throws<ArgumentException>(() => sut.Add(typeof(TestCommandWithoutVersion)));
         }
 
         [Fact(DisplayName = "[UNIT][CTR-003]: Add Type with Different Version")]
@@ -65,7 +65,7 @@ namespace Ironyx.Kernel.Test.Unit.Registry
 
             // Act
             // Assert
-            Assert.Throws<InvalidOperationException>(() => sut.Add<TestCommand>());
+            Assert.Throws<InvalidOperationException>(() => sut.Add(typeof(TestCommand)));
         }
 
         [Fact(DisplayName = "[UNIT][CTR-005]: Resolve Runtime Type")]
