@@ -1,5 +1,6 @@
 ﻿using Ironyx.Kernel.Builders;
 using Ironyx.Kernel.Execution.Contexts;
+using Ironyx.Kernel.Execution.Registries;
 using Ironyx.Kernel.Extractors;
 using Ironyx.Kernel.Generators;
 using Ironyx.Kernel.Registry;
@@ -29,6 +30,11 @@ namespace Ironyx.Kernel
             builder.Services.AddTransient<ICanonicalTypeBuilder>(p => p.GetRequiredService<CanonicalTypeRegistry>());
             builder.Services.AddTransient<IRuntimeTypeResolver>(p => p.GetRequiredService<CanonicalTypeRegistry>());
 
+            var handlerRegistry = new CommandHandlerRegistry();
+            builder.Services.AddSingleton(_ => handlerRegistry);
+            builder.Services.AddTransient<IHandlerRegistry>(p => p.GetRequiredService<CommandHandlerRegistry>());
+            builder.Services.AddTransient<IHandlerTypeResolver>(p => p.GetRequiredService<CommandHandlerRegistry>());
+
             builder.Services.AddScoped<RequestContext>();
             builder.Services.AddTransient<IRequestContext>(provider => provider.GetRequiredService<RequestContext>());
             builder.Services.AddScoped<IRequestContextAccessor>(provider => provider.GetRequiredService<RequestContext>());
@@ -42,7 +48,7 @@ namespace Ironyx.Kernel
                 listenOptions.Protocols = HttpProtocols.Http2;
             }));
 
-            return new KernelBuilder(builder, canonicalTypeRegistry);
+            return new KernelBuilder(builder, canonicalTypeRegistry, handlerRegistry);
         }
     }
 }

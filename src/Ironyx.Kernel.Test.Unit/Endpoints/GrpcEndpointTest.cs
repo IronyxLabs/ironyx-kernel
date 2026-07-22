@@ -55,7 +55,7 @@ namespace Ironyx.Kernel.Test.Unit.Endpoints
             await sut.SendAsync(new EnvelopFaker().Use(command).Generate(), ServerCallContextFaker.CreateSend());
 
             // Assert
-            _commandDispatcherMock.Verify(d => d.DispatchAsync<Command>(It.Is<TestCommand>(c => c.Name == command.Name), It.IsAny<CancellationToken>()), Times.Once);
+            _commandDispatcherMock.Verify(d => d.DispatchAsync(It.Is<TestCommand>(c => c.Name == command.Name), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact(DisplayName = "[UNIT][GRE-002]: Extract Request")]

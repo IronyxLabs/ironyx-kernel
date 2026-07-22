@@ -9,11 +9,8 @@ builder.Services.AddSerilog((_, configuration) => configuration.ReadFrom.Configu
 
 
 builder.UseKernel()
-    .AddCommand<SampleCommand>()
-    .AddQuery<SampleQuery, SampleQuery.Result>()
-
-    .AddHandler<SampleCommand, SampleCommandHandler>()
-    .AddHandler<SampleQuery, SampleQuery.Result, SampleQueryHandler>();
+    .AddCommand<SampleCommand, SampleCommandHandler>()
+    .AddQuery<SampleQuery, SampleQuery.Result>();
 
 var app = builder.Build();
 

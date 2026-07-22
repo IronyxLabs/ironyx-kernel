@@ -10,7 +10,6 @@ namespace Ironyx.Kernel.Execution.Test.Unit
 {
     public class QueryDispatcherTest
     {
-
         private readonly ILogger<QueryDispatcher> _logger;
 
         public QueryDispatcherTest(ITestOutputHelper outputHelper)
@@ -42,7 +41,7 @@ namespace Ironyx.Kernel.Execution.Test.Unit
             var sut = CreateSUT(() => value);
 
             // Act
-            var result = await sut.DispatchAsync<TestQuery, string>(new AutoFaker<TestQuery>().Generate(), default);
+            var result = await sut.DispatchAsync(new AutoFaker<TestQuery>().Generate(), default);
 
             // Assert
             Assert.Equal(value, result);
@@ -57,7 +56,7 @@ namespace Ironyx.Kernel.Execution.Test.Unit
 
             // Act
             // Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(async () => await sut.DispatchAsync<TestQuery, string>(new AutoFaker<TestQuery>().Generate(), default));
+            await Assert.ThrowsAsync<InvalidOperationException>(async () => await sut.DispatchAsync(new AutoFaker<TestQuery>().Generate(), default));
         }
     }
 

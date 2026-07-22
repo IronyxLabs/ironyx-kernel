@@ -1,6 +1,8 @@
-﻿namespace Ironyx.Kernel
+﻿using Ironyx.Kernel.Abstraction.Interfaces;
+
+namespace Ironyx.Kernel
 {
-    public abstract record Command
+    public abstract record Command : ICommand
     {
     }
 }
