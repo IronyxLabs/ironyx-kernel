@@ -12,7 +12,7 @@ run-name: ${{ github.event_name == 'pull_request' && format('[PR] - {1} {0}',  g
 
 jobs:
   ci:
-    uses: IronyxLabs/ironyx-scripts/.github/workflows/dotnet_ci-pipeline.yaml@fix/handle-multiple-tests
+    uses: IronyxLabs/ironyx-scripts/.github/workflows/dotnet_ci-pipeline.yaml@v1
     secrets:
       sonar-token: ${{ secrets.SONAR_TOKEN }}
       testspace-token: ${{ secrets.TESTSPACE_TOKEN }}
