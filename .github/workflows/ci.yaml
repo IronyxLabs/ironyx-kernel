@@ -18,3 +18,4 @@ jobs:
       testspace-token: ${{ secrets.TESTSPACE_TOKEN }}
     with:
       sonar-project_key: IronyxLabs_ironyx-kernel
+      net-solution: src/Ironyx.Kernel.slnx

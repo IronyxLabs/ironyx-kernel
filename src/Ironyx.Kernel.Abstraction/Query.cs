@@ -2,7 +2,7 @@
 
 namespace Ironyx.Kernel
 {
-    public abstract record Command : ICommand
+    public abstract record Query<TResult> : IQuery
     {
     }
 }

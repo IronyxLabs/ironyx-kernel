@@ -3,22 +3,22 @@ using Ironyx.Kernel.Execution.Contexts;
 using Ironyx.Kernel.Generators;
 using Microsoft.Extensions.Logging;
 
-namespace Ironyx.Kernel.Unwrappers
+namespace Ironyx.Kernel.Extractors
 {
-    public class RequestContextUnwrapper : IUnwrapper
+    public class RequestContextExtractor : IExtractor
     {
         private readonly IRequestContext _context;
         private readonly IUlidGenerator _generator;
-        private readonly ILogger<RequestContextUnwrapper> _logger;
+        private readonly ILogger<RequestContextExtractor> _logger;
 
-        public RequestContextUnwrapper(IRequestContext context, IUlidGenerator generator, ILogger<RequestContextUnwrapper> logger)
+        public RequestContextExtractor(IRequestContext context, IUlidGenerator generator, ILogger<RequestContextExtractor> logger)
         {
             _context = context;
             _generator = generator;
             _logger = logger;
         }
 
-        public async Task UnwrapAsync(Metadata metadata, CancellationToken cancellationToken)
+        public async Task ExtractAsync(Metadata metadata, CancellationToken cancellationToken)
         {
             var correlationId = metadata.GetCorrelationId();
             if (string.IsNullOrWhiteSpace(correlationId))

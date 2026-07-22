@@ -1,5 +1,6 @@
 ﻿namespace Ironyx.Kernel.Sample.Handlers
 {
+    [RequestVersion("v1")]
     public record SampleCommand : Command
     {
         public string Message { get; init; } = null!;

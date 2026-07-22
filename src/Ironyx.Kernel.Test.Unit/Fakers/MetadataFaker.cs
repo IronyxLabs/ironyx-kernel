@@ -1,6 +1,6 @@
 ﻿using Grpc.Core;
 
-namespace Ironyx.Kernel.Execution.Test.Unit.Fakers
+namespace Ironyx.Kernel.Test.Unit.Fakers
 {
     public class MetadataFaker
     {

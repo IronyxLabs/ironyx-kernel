@@ -1,5 +1,6 @@
 ﻿
-using Microsoft.Extensions.DependencyInjection;
+using Ironyx.Kernel.Abstraction.Interfaces;
+using Ironyx.Kernel.Execution.Registries;
 using Microsoft.Extensions.Logging;
 
 namespace Ironyx.Kernel.Execution.Dispatchers
@@ -7,22 +8,24 @@ namespace Ironyx.Kernel.Execution.Dispatchers
     public class CommandDispatcher : ICommandDispatcher
     {
         private readonly IServiceProvider _provider;
+        private readonly IHandlerTypeResolver _resolver;
         private readonly ILogger<CommandDispatcher> _logger;
 
-        public CommandDispatcher(IServiceProvider provider, ILogger<CommandDispatcher> logger)
+        public CommandDispatcher(IServiceProvider provider, IHandlerTypeResolver resolver, ILogger<CommandDispatcher> logger)
         {
             _provider = provider;
+            _resolver = resolver;
             _logger = logger;
         }
 
-        public async Task DispatchAsync<TCommand>(TCommand command, CancellationToken cancellationToken) where TCommand : Command
+        public async Task DispatchAsync(ICommand command, CancellationToken cancellationToken)
         {
             var type = command.GetType();
 
             _logger.LogDebug("Dispatching {Command}", type.Name);
-            var handler = _provider.GetService<ICommandHandler<TCommand>>() ?? throw new InvalidOperationException($"Handler not found for command: {type.FullName}");
+            var handler = (dynamic)(_provider.GetService(_resolver[type]) ?? throw new InvalidOperationException($"Handler not found for command: {type.FullName}"));
 
-            await handler.HandleAsync(command, cancellationToken);
+            await handler.HandleAsync((dynamic)command, cancellationToken);
             _logger.LogDebug("Dispatching {Command} has been finished", type.Name);
         }
     }

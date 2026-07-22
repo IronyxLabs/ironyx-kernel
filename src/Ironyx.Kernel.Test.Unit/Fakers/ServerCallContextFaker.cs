@@ -2,7 +2,7 @@
 using Grpc.Core;
 using Grpc.Core.Testing;
 
-namespace Ironyx.Kernel.Execution.Test.Unit.Fakers
+namespace Ironyx.Kernel.Test.Unit.Fakers
 {
     internal static class ServerCallContextFaker
     {
@@ -12,6 +12,22 @@ namespace Ironyx.Kernel.Execution.Test.Unit.Fakers
 
             return TestServerCallContext.Create(
                 "SendAsync",
+                faker.Internet.Ip(),
+                faker.Date.Future(),
+                [],
+                default,
+                faker.Internet.Ip(),
+                new AuthContext(null, []),
+                null,
+                null, null, null);
+        }
+
+        public static ServerCallContext CreateGet()
+        {
+            var faker = new Faker();
+
+            return TestServerCallContext.Create(
+                "GetAsync",
                 faker.Internet.Ip(),
                 faker.Date.Future(),
                 [],

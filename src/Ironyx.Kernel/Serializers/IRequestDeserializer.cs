@@ -2,6 +2,6 @@
 {
     public interface IRequestDeserializer
     {
-        Task<dynamic> DeserializeAsync(Request request, CancellationToken cancellationToken);
+        Task<dynamic> DeserializeAsync(Envelop envelop, CancellationToken cancellationToken);
     }
 }
