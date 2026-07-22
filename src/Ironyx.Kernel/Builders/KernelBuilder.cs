@@ -1,4 +1,5 @@
-﻿using Ironyx.Kernel.Execution.Registries;
+﻿using Ironyx.Kernel.Execution;
+using Ironyx.Kernel.Execution.Registries;
 using Ironyx.Kernel.Registry;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,9 +10,9 @@ namespace Ironyx.Kernel.Builders
     {
         private readonly WebApplicationBuilder _builder;
         private readonly CanonicalTypeRegistry _canonicalTypeRegistry;
-        private readonly CommandHandlerRegistry _handlerRegistry;
+        private readonly HandlerRegistry _handlerRegistry;
 
-        public KernelBuilder(WebApplicationBuilder builder, CanonicalTypeRegistry canonicalTypeRegistry, CommandHandlerRegistry handlerRegistry)
+        public KernelBuilder(WebApplicationBuilder builder, CanonicalTypeRegistry canonicalTypeRegistry, HandlerRegistry handlerRegistry)
         {
             _builder = builder;
             _canonicalTypeRegistry = canonicalTypeRegistry;
@@ -30,10 +31,14 @@ namespace Ironyx.Kernel.Builders
             return this;
         }
 
-        public KernelBuilder AddQuery<TQuery, TResult>()
+        public KernelBuilder AddQuery<TQuery, TResult, THandler>()
             where TQuery : Query<TResult>
+            where THandler : class, IQueryHandler<TQuery, TResult>
         {
             _canonicalTypeRegistry.Add(typeof(TQuery));
+            _handlerRegistry.Add(typeof(TQuery), typeof(THandler));
+
+            _builder.Services.AddTransient<THandler>();
 
             return this;
         }

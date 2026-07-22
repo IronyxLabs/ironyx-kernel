@@ -70,7 +70,7 @@ namespace Ironyx.Kernel.Receivers
         public override async Task<Reply> GetAsync(Envelop envelop, ServerCallContext context)
         {
             var query = await _deserializer.DeserializeAsync(envelop, context.CancellationToken);
-            var result = await _queryDispatcher.DispatchAsync(query, context.CancellationToken);
+            var result = await _queryDispatcher.DispatchAsync<dynamic>(query, context.CancellationToken);
             return GrpcReply.Ok(JsonSerializer.Serialize(result)).Reply;
         }
     }

@@ -30,10 +30,10 @@ namespace Ironyx.Kernel
             builder.Services.AddTransient<ICanonicalTypeBuilder>(p => p.GetRequiredService<CanonicalTypeRegistry>());
             builder.Services.AddTransient<IRuntimeTypeResolver>(p => p.GetRequiredService<CanonicalTypeRegistry>());
 
-            var handlerRegistry = new CommandHandlerRegistry();
+            var handlerRegistry = new HandlerRegistry();
             builder.Services.AddSingleton(_ => handlerRegistry);
-            builder.Services.AddTransient<IHandlerRegistry>(p => p.GetRequiredService<CommandHandlerRegistry>());
-            builder.Services.AddTransient<IHandlerTypeResolver>(p => p.GetRequiredService<CommandHandlerRegistry>());
+            builder.Services.AddTransient<IHandlerRegistry>(p => p.GetRequiredService<HandlerRegistry>());
+            builder.Services.AddTransient<IHandlerTypeResolver>(p => p.GetRequiredService<HandlerRegistry>());
 
             builder.Services.AddScoped<RequestContext>();
             builder.Services.AddTransient<IRequestContext>(provider => provider.GetRequiredService<RequestContext>());

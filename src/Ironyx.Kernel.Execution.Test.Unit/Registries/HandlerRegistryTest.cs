@@ -3,11 +3,11 @@ using Ironyx.Kernel.Test.Features;
 
 namespace Ironyx.Kernel.Execution.Test.Unit.Registries
 {
-    public class CommandHandlerRegistryTest
+    public class HandlerRegistryTest
     {
-        private CommandHandlerRegistry CreateSUT()
+        private HandlerRegistry CreateSUT()
         {
-            return new CommandHandlerRegistry();
+            return new HandlerRegistry();
         }
 
         [Fact(DisplayName = "[UNIT][CHR-001]: Registrate Command")]

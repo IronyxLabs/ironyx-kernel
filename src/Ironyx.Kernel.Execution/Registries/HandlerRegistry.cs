@@ -1,6 +1,6 @@
 ﻿namespace Ironyx.Kernel.Execution.Registries
 {
-    public class CommandHandlerRegistry : IHandlerRegistry, IHandlerTypeResolver
+    public class HandlerRegistry : IHandlerRegistry, IHandlerTypeResolver
     {
         private readonly Dictionary<Type, Type> _registrations = [];
 

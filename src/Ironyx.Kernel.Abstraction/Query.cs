@@ -1,6 +1,8 @@
-﻿namespace Ironyx.Kernel
+﻿using Ironyx.Kernel.Abstraction.Interfaces;
+
+namespace Ironyx.Kernel
 {
-    public abstract record Query<TResult>
+    public abstract record Query<TResult> : IQuery
     {
     }
 }

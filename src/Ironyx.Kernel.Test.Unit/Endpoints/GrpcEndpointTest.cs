@@ -105,7 +105,7 @@ namespace Ironyx.Kernel.Test.Unit.Endpoints
             var result = new AutoFaker<TestQuery.Result>().Generate();
 
             _deserializerMock.Setup(d => d.DeserializeAsync(It.IsAny<Envelop>(), It.IsAny<CancellationToken>())).ReturnsAsync(query);
-            _queryDispatcherMock.Setup(d => d.DispatchAsync(It.IsAny<TestQuery>(), It.IsAny<CancellationToken>())).ReturnsAsync(result);
+            _queryDispatcherMock.Setup(d => d.DispatchAsync<dynamic>(It.IsAny<TestQuery>(), It.IsAny<CancellationToken>())).ReturnsAsync(result);
 
             // Act
             var reply = await sut.GetAsync(new EnvelopFaker().Use<TestQuery, TestQuery.Result>(query).Generate(), callContext);
