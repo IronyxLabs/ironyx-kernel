@@ -1,8 +1,17 @@
 <Solution>
-  <Project Path="Ironyx.Kernel.Abstraction/Ironyx.Kernel.Abstraction.csproj" Id="00ae8c62-e404-4c70-9490-ef836636087d" />
-  <Project Path="Ironyx.Kernel.Execution.Test.Unit/Ironyx.Kernel.Execution.Test.Unit.csproj" Id="1572d304-6921-4a52-94e9-a0c73baa2215" />
-  <Project Path="Ironyx.Kernel.Execution/Ironyx.Kernel.Execution.csproj" Id="8915931d-d0c6-4604-992e-5f4e83a62d28" />
+  <Folder Name="/Abstraction/">
+    <Project Path="Ironyx.Kernel.Abstraction/Ironyx.Kernel.Abstraction.csproj" Id="00ae8c62-e404-4c70-9490-ef836636087d" />
+  </Folder>
+  <Folder Name="/Execution/">
+    <Project Path="Ironyx.Kernel.Execution.Test.Unit/Ironyx.Kernel.Execution.Test.Unit.csproj" Id="1572d304-6921-4a52-94e9-a0c73baa2215" />
+    <Project Path="Ironyx.Kernel.Execution/Ironyx.Kernel.Execution.csproj" Id="8915931d-d0c6-4604-992e-5f4e83a62d28" />
+  </Folder>
+  <Folder Name="/Kernel/">
+    <Project Path="Ironyx.Kernel.Test.Unit/Ironyx.Kernel.Test.Unit.csproj" Id="a3ccad06-dfce-4f5e-b04d-24568c79b75e" />
+    <Project Path="Ironyx.Kernel/Ironyx.Kernel.csproj" Id="8afb1077-af3e-4123-a223-e0451d1f62d0" />
+  </Folder>
   <Project Path="Ironyx.Kernel.Sample/Ironyx.Kernel.Sample.csproj" Id="b95a26ae-47b8-43ea-9974-413ca2faf6c1" />
   <Project Path="Ironyx.Kernel.Test.Integration/Ironyx.Kernel.Test.Integration.csproj" Id="8672cd4a-5d63-4944-bf8a-652ad11b4542" />
-  <Project Path="Ironyx.Kernel/Ironyx.Kernel.csproj" Id="8afb1077-af3e-4123-a223-e0451d1f62d0" />
+  <Project Path="Ironyx.Kernel.Test/Ironyx.Kernel.Test.csproj" Id="4ef4a1f6-9934-493c-bfbf-23e05dd0fa20" />
+  <Project Path="Ironyx.Testing/Ironyx.Testing.csproj" Id="10dccfdd-a88b-427e-9c09-e4ff2e60eb5c" />
 </Solution>

@@ -1,4 +1,4 @@
-﻿using Grpc.Core;
+﻿using Ironyx.Kernel.Registry;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -6,46 +6,36 @@ namespace Ironyx.Kernel.Serializers
 {
     public class RequestDeserializer : IRequestDeserializer
     {
+        private readonly IRuntimeTypeResolver _typeResolver;
         private readonly ILogger<RequestDeserializer> _logger;
 
-        public RequestDeserializer(ILogger<RequestDeserializer> logger)
+        public RequestDeserializer(IRuntimeTypeResolver typeResolver, ILogger<RequestDeserializer> logger)
         {
+            _typeResolver = typeResolver;
             _logger = logger;
         }
 
-        public async Task<dynamic> DeserializeAsync(Request request, CancellationToken cancellationToken)
+        public async Task<dynamic> DeserializeAsync(Envelop envelop, CancellationToken cancellationToken)
         {
-            _logger.LogDebug("Attempting to serialize incoming request");
-            if (string.IsNullOrWhiteSpace(request.Type)) throw Exceptions.TypeIsNotDefined;
-            _logger.LogDebug("Detected request type: {RequestType}", request.Type);
+            if (string.IsNullOrWhiteSpace(envelop.Type)) throw Exceptions.TypeIsNotDefined;
+            if (string.IsNullOrWhiteSpace(envelop.Version)) throw Exceptions.VersionIsNotDefined;
 
-            var type = Type.GetType(request.Type) ?? throw Exceptions.UnknowType;
+            _logger.LogDebug("Serialize {Type}", $"{envelop.Type}.{envelop.Version}");
+            var type = _typeResolver[envelop.Type, envelop.Version];
 
-            var command = await request.DeserializeAsync(type, cancellationToken);
-            _logger.LogDebug("Command successfully serialized");
-            _logger.LogTrace("Command: {@Command}", (object)command);
-            return command;
-
-        }
-    }
-
-    file static class RequestUnwrapperExtensions
-    {
-        public static string? GetRequestType(this Metadata metadata)
-        {
-            return metadata.SingleOrDefault(m => m.Key == "request-type")?.Value;
-        }
-        public static async Task<dynamic> DeserializeAsync(this Request request, Type type, CancellationToken cancellationToken)
-        {
-            using (var stream = new MemoryStream())
+            await using (var stream = new MemoryStream())
             {
-                using (var writer = new StreamWriter(stream, leaveOpen: true))
+                await using (var writer = new StreamWriter(stream, leaveOpen: true))
                 {
-                    await writer.WriteAsync(request.Content.AsMemory(), cancellationToken);
+                    await writer.WriteAsync(envelop.Payload.AsMemory(), cancellationToken);
                     await writer.FlushAsync(cancellationToken);
                     stream.Position = 0;
 
-                    return await JsonSerializer.DeserializeAsync(stream, type, cancellationToken: cancellationToken) ?? throw new JsonException("Invalid content");
+                    var result = await JsonSerializer.DeserializeAsync(stream, type, cancellationToken: cancellationToken) ?? throw new JsonException("Invalid content");
+                    _logger.LogDebug("Command successfully serialized");
+                    _logger.LogTrace("Command: {@Command}", (object)result);
+
+                    return result;
                 }
             }
         }
@@ -54,6 +44,6 @@ namespace Ironyx.Kernel.Serializers
     file static class Exceptions
     {
         public static ArgumentNullException TypeIsNotDefined => new("Type", "The request type is not defined");
-        public static NotSupportedException UnknowType => new("Unkown request type");
+        public static ArgumentNullException VersionIsNotDefined => new("Version", "The request version is not defined");
     }
 }

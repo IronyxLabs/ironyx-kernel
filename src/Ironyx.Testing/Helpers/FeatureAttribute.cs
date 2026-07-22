@@ -1,8 +1,8 @@
 ﻿using Xunit.Sdk;
 
-namespace Ironyx.Kernel.Execution.Test.Unit.Helpers
+namespace Ironyx.Testing
 {
-    [TraitDiscoverer("Ironyx.Kernel.Execution.Test.Unit.Helpers.FeatureTraitDiscoverer", "Ironyx.Kernel.Execution.Test.Unit")]
+    [TraitDiscoverer("Ironyx.Testing.Helpers.FeatureTraitDiscoverer", "Ironyx.Testing")]
     [AttributeUsage(AttributeTargets.Method)]
     public class FeatureAttribute : Attribute, ITraitAttribute
     {

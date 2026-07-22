@@ -1,8 +1,9 @@
-﻿namespace Ironyx.Kernel.Execution.Dispatchers
+﻿using Ironyx.Kernel.Abstraction.Interfaces;
+
+namespace Ironyx.Kernel.Execution.Dispatchers
 {
     public interface ICommandDispatcher
     {
-        Task DispatchAsync<TCommand>(TCommand command, CancellationToken cancellationToken)
-            where TCommand : Command;
+        Task DispatchAsync(ICommand command, CancellationToken cancellationToken);
     }
 }
