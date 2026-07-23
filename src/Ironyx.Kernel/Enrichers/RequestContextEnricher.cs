@@ -1,4 +1,5 @@
 ﻿using Grpc.Core;
+using Ironyx.Kernel.Monitoring;
 using Microsoft.Extensions.Logging;
 
 namespace Ironyx.Kernel.Enrichers
@@ -6,20 +7,20 @@ namespace Ironyx.Kernel.Enrichers
     public class RequestContextEnricher : IEnricher
     {
         private readonly IRequestContextAccessor _requestContext;
-        private readonly ILogger<RequestContextEnricher> _logger;
+        private readonly LogContext.RequestContextEnricherLogContext _logger;
 
         public RequestContextEnricher(IRequestContextAccessor requestContext, ILogger<RequestContextEnricher> logger)
         {
             _requestContext = requestContext;
-            _logger = logger;
+            _logger = new LogContext.RequestContextEnricherLogContext(logger);
         }
 
         public Task EnrichAsync(Metadata metadata, CancellationToken cancellationToken)
         {
-            _logger.LogDebug("Set CorrelationId to {CorrelationId}", _requestContext.CorrelationId);
+            _logger.LogCorrelationId(_requestContext.CorrelationId);
             metadata.Add("correlation-id", _requestContext.CorrelationId.ToString());
 
-            _logger.LogDebug("Set CausationId to {CausationId}", _requestContext.RequestId);
+            _logger.LogCausationId(_requestContext.CausationId);
             metadata.Add("causation-id", _requestContext.RequestId.ToString());
 
             return Task.CompletedTask;

@@ -1,6 +1,7 @@
 ﻿using Grpc.Core;
 using Ironyx.Kernel.Enrichers;
 using Ironyx.Kernel.Execution.Senders;
+using Ironyx.Kernel.Monitoring;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
 using System.Text.Json;
@@ -11,19 +12,19 @@ namespace Ironyx.Kernel.Senders
     {
         private readonly IGenericClient _client;
         private readonly IEnricher _enricher;
-        private readonly ILogger<GrpcRequestSender> _logger;
+        private readonly LogContext.GrpcRequestSenderLogContext _logger;
 
         public GrpcRequestSender(IGenericClient client, IEnricher enricher, ILogger<GrpcRequestSender> logger)
         {
             _client = client;
             _enricher = enricher;
-            _logger = logger;
+            _logger = new LogContext.GrpcRequestSenderLogContext(logger);
         }
 
         public async Task<TResult?> GetAsync<TQuery, TResult>(TQuery query, CancellationToken cancellationToken) where TQuery : Query<TResult>
         {
             var type = query.GetType();
-            _logger.LogDebug("Sending query: {Query}", type.FullName);
+            _logger.LogSendingQuery(type.FullName!);
 
             var envelop = new Envelop()
             {
@@ -35,8 +36,8 @@ namespace Ironyx.Kernel.Senders
             var metadata = new Metadata();
             await _enricher.EnrichAsync(metadata, cancellationToken);
 
-            _logger.LogTrace("Envelop: {@Envelop}", envelop);
-            _logger.LogTrace("Metadata: {@Metadata}", metadata);
+            _logger.LogEnvelop(envelop);
+            _logger.LogMetadata(metadata);
 
             var reply = await _client.GetAsync(envelop, metadata, cancellationToken);
             return await reply.Data.DeserializeAsync<TResult>(cancellationToken);
@@ -46,7 +47,7 @@ namespace Ironyx.Kernel.Senders
             where TCommand : Command
         {
             var type = command.GetType();
-            _logger.LogDebug("Sending command: {Command}", type.FullName);
+            _logger.LogSendingCommand(type.FullName!);
 
             var envelop = new Envelop()
             {
@@ -57,8 +58,8 @@ namespace Ironyx.Kernel.Senders
             var metadata = new Metadata();
             await _enricher.EnrichAsync(metadata, cancellationToken);
 
-            _logger.LogTrace("Envelop: {@Envelop}", envelop);
-            _logger.LogTrace("Metadata: {@Metadata}", metadata);
+            _logger.LogEnvelop(envelop);
+            _logger.LogMetadata(metadata);
 
             await _client.SendAsync(envelop, metadata, cancellationToken);
         }
