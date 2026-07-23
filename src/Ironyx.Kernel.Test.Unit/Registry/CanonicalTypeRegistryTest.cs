@@ -1,5 +1,6 @@
 ﻿using Ironyx.Kernel.Registry;
 using Ironyx.Kernel.Test.Features;
+using System.Reflection;
 
 namespace Ironyx.Kernel.Test.Unit.Registry
 {
@@ -84,9 +85,9 @@ namespace Ironyx.Kernel.Test.Unit.Registry
             Assert.Equal(typeof(TestCommand), type);
         }
 
-        [Fact(DisplayName = "[UNIT][CTR-006]: Attempt to Resolve Unknown Type")]
+        [Fact(DisplayName = "[UNIT][CTR-006]: Attempt to Resolve Unknown Runtime Type")]
         [GrpcEndpointFeature]
-        public void CanonicalTypeRegistry_Resolve_AttemptToResolveUnkownType()
+        public void CanonicalTypeRegistry_Resolve_AttemptToResolveUnkownRuntimeType()
         {
             // Arrange
             var sut = CreateSUT();
@@ -94,6 +95,34 @@ namespace Ironyx.Kernel.Test.Unit.Registry
             // Act
             // Assert
             Assert.Throws<NotSupportedException>(() => sut[typeof(TestCommand).FullName!, "v1"]);
+        }
+
+        [Fact(DisplayName = "[UNIT][CTR-007]: Resolve Canonical Type")]
+        [RequestSendingFeature]
+        public void CanonicalTypeRegistry_Resolve_ResolveCanonicalType()
+        {
+            // Arrange
+            var sut = CreateSUT();
+
+            sut.Add(typeof(TestCommand));
+
+            // Act
+            var description = sut[typeof(TestCommand)];
+
+            // Assert
+            Assert.Equal(typeof(TestCommand).GetCanonicalTypeDescription(), description);
+        }
+
+        [Fact(DisplayName = "[UNIT][CTR-008]: Attempting to Resolve Unknown Canonical Type")]
+        [RequestSendingFeature]
+        public void CanonicalTypeRegistry_Resolve_AttemptingToResolveUnknownCanonicalType()
+        {
+            // Arrange
+            var sut = CreateSUT();
+
+            // Act
+            // Assert
+            Assert.Throws<NotSupportedException>(() => sut[typeof(TestCommand)]);
         }
     }
 
@@ -104,6 +133,15 @@ namespace Ironyx.Kernel.Test.Unit.Registry
 
     file static class CanonicalTypeRegistryTestExtensions
     {
+        public static CanonicalTypeDescription GetCanonicalTypeDescription(this Type type)
+        {
+            return new CanonicalTypeDescription
+            {
+                Type = type.FullName!,
+                Version = type.GetCustomAttribute<RequestVersionAttribute>()!.Version
+            };
+        }
+
         public static void Validate<TCommand>(this KeyValuePair<CanonicalTypeDescription, Type> registration, string version)
             where TCommand : Command
         {

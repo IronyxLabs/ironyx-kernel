@@ -43,5 +43,6 @@ namespace Ironyx.Kernel.Registry
         public static ArgumentException VersionNotDefined(string type) => new($"Version is not defined for type: {type}");
         public static InvalidOperationException Conflict(string type, string version) => new($"Type {type} with version {version} has already been registered");
         public static NotSupportedException NotSupported(string type, string version) => new($"Type {type} with version {version} is not suppoted");
+        public static NotSupportedException NotSupported(Type type) => new($"Runtime type {type} is not suppoted");
     }
 }
