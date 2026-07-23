@@ -1,7 +1,9 @@
 ﻿using Grpc.Core;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Ironyx.Kernel.Senders
 {
+    [ExcludeFromCodeCoverage]
     public class GrpcGenericClient : IGenericClient
     {
         private readonly GenericAPI.GenericAPIClient _client;
