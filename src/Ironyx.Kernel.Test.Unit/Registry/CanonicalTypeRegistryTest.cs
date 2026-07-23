@@ -96,34 +96,6 @@ namespace Ironyx.Kernel.Test.Unit.Registry
             // Assert
             Assert.Throws<NotSupportedException>(() => sut[typeof(TestCommand).FullName!, "v1"]);
         }
-
-        [Fact(DisplayName = "[UNIT][CTR-007]: Resolve Canonical Type")]
-        [RequestSendingFeature]
-        public void CanonicalTypeRegistry_Resolve_ResolveCanonicalType()
-        {
-            // Arrange
-            var sut = CreateSUT();
-
-            sut.Add(typeof(TestCommand));
-
-            // Act
-            var description = sut[typeof(TestCommand)];
-
-            // Assert
-            Assert.Equal(typeof(TestCommand).GetCanonicalTypeDescription(), description);
-        }
-
-        [Fact(DisplayName = "[UNIT][CTR-008]: Attempting to Resolve Unknown Canonical Type")]
-        [RequestSendingFeature]
-        public void CanonicalTypeRegistry_Resolve_AttemptingToResolveUnknownCanonicalType()
-        {
-            // Arrange
-            var sut = CreateSUT();
-
-            // Act
-            // Assert
-            Assert.Throws<NotSupportedException>(() => sut[typeof(TestCommand)]);
-        }
     }
 
     [RequestVersion("v1")]

@@ -1,7 +1,7 @@
 ﻿using Ironyx.Kernel.Builders;
+using Ironyx.Kernel.Enrichers;
 using Ironyx.Kernel.Execution.Contexts;
 using Ironyx.Kernel.Execution.Registries;
-using Ironyx.Kernel.Execution.Senders;
 using Ironyx.Kernel.Extractors;
 using Ironyx.Kernel.Generators;
 using Ironyx.Kernel.Registry;
@@ -24,7 +24,9 @@ namespace Ironyx.Kernel
             builder.Services.AddQueryDispatcher();
 
             builder.Services.AddGrpc();
-            builder.Services.AddGrpcClient<GenericAPI.GenericAPIClient>(options => options.Address = new Uri("http://localhost:57400"));
+            builder.Services.AddTransient<IGenericClient, GrpcGenericClient>();
+
+            builder.Services.AddTransient<IEnricher, RequestContextEnricher>();
 
             builder.Services.AddTransient<IExtractor, RequestContextExtractor>();
 
@@ -50,8 +52,6 @@ namespace Ironyx.Kernel
             {
                 listenOptions.Protocols = HttpProtocols.Http2;
             }));
-
-            builder.Services.AddTransient<ICommandSender, GrpcCommandSender>();
 
             return new KernelBuilder(builder, canonicalTypeRegistry, handlerRegistry);
         }
