@@ -10,9 +10,9 @@ namespace Ironyx.Kernel.Sample.Handlers
 
     public class SampleCommandHandler : ICommandHandler<SampleCommand>
     {
-        private readonly ICommandSender _sender;
+        private readonly IRequestSender _sender;
 
-        public SampleCommandHandler(ICommandSender sender)
+        public SampleCommandHandler(IRequestSender sender)
         {
             _sender = sender;
         }

@@ -19,7 +19,7 @@ namespace Ironyx.Kernel.Enrichers
             _logger.LogDebug("Set CorrelationId to {CorrelationId}", _requestContext.CorrelationId);
             metadata.Add("correlation-id", _requestContext.CorrelationId.ToString());
 
-            _logger.LogDebug("Set CorrelationId to {CorrelationId}", _requestContext.RequestId);
+            _logger.LogDebug("Set CausationId to {CausationId}", _requestContext.RequestId);
             metadata.Add("causation-id", _requestContext.RequestId.ToString());
 
             return Task.CompletedTask;

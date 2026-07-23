@@ -48,7 +48,7 @@ namespace Ironyx.Kernel.Builders
         public KernelBuilder AddCommandSender(Uri url)
         {
             _builder.Services.AddGrpcClient<GenericAPI.GenericAPIClient>(options => options.Address = url);
-            _builder.Services.AddTransient<ICommandSender, GrpcCommandSender>();
+            _builder.Services.AddTransient<IRequestSender, GrpcRequestSender>();
 
             return this;
         }
