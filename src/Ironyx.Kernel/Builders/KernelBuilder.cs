@@ -1,6 +1,8 @@
 ﻿using Ironyx.Kernel.Execution;
 using Ironyx.Kernel.Execution.Registries;
+using Ironyx.Kernel.Execution.Senders;
 using Ironyx.Kernel.Registry;
+using Ironyx.Kernel.Senders;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -39,6 +41,14 @@ namespace Ironyx.Kernel.Builders
             _handlerRegistry.Add(typeof(TQuery), typeof(THandler));
 
             _builder.Services.AddTransient<THandler>();
+
+            return this;
+        }
+
+        public KernelBuilder AddCommandSender(Uri url)
+        {
+            _builder.Services.AddGrpcClient<GenericAPI.GenericAPIClient>(options => options.Address = url);
+            _builder.Services.AddTransient<IRequestSender, GrpcRequestSender>();
 
             return this;
         }
