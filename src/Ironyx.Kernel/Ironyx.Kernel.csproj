@@ -7,14 +7,20 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.80.0" />
-    <PackageReference Include="Scrutor" Version="7.0.0" />
+    <None Remove="Endpoint\Generic.proto" />
   </ItemGroup>
 
-	<ItemGroup>
-		<Protobuf Include="Endpoint\Generic.proto" GrpcServices="Server" />
-	</ItemGroup>
-	
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.21.5" />
+    <PackageReference Include="Grpc.AspNetCore.Server" Version="2.49.0" />
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.49.0" />
+    <PackageReference Include="Grpc.Tools" Version="2.49.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="Scrutor" Version="7.0.0" />
+  </ItemGroup>
+  	
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
@@ -22,6 +28,10 @@
   <ItemGroup>
     <ProjectReference Include="..\Ironyx.Kernel.Abstraction\Ironyx.Kernel.Abstraction.csproj" />
     <ProjectReference Include="..\Ironyx.Kernel.Execution\Ironyx.Kernel.Execution.csproj" />
+  </ItemGroup>
+	
+  <ItemGroup>
+    <Protobuf Include="Endpoint\Generic.proto" GrpcServices="Both" />
   </ItemGroup>
 
 </Project>

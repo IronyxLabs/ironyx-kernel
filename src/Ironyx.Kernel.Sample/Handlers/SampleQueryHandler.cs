@@ -1,4 +1,5 @@
 ﻿using Ironyx.Kernel.Execution;
+using Ironyx.Kernel.Execution.Senders;
 
 namespace Ironyx.Kernel.Sample.Handlers
 {
@@ -15,9 +16,21 @@ namespace Ironyx.Kernel.Sample.Handlers
 
     public class SampleQueryHandler : IQueryHandler<SampleQuery, SampleQuery.Result>
     {
-        public Task<SampleQuery.Result> HandleAsync(SampleQuery query, CancellationToken cancellationToken)
+        private readonly IRequestSender _sender;
+
+        public SampleQueryHandler(IRequestSender sender)
         {
-            return Task.FromResult(new SampleQuery.Result { Message = $"Hello {query.Name}!" });
+            _sender = sender;
+        }
+
+        public async Task<SampleQuery.Result> HandleAsync(SampleQuery query, CancellationToken cancellationToken)
+        {
+            if (query.Name == "FORWARD")
+            {
+                return (await _sender.GetAsync<SampleQuery, SampleQuery.Result>(new SampleQuery { Name = "Ironyx" }, cancellationToken))!;
+            }
+
+            return new SampleQuery.Result { Message = $"Hello {query.Name}" };
         }
     }
 }

@@ -10,7 +10,9 @@ builder.Services.AddSerilog((_, configuration) => configuration.ReadFrom.Configu
 
 builder.UseKernel()
     .AddCommand<SampleCommand, SampleCommandHandler>()
-    .AddQuery<SampleQuery, SampleQuery.Result, SampleQueryHandler>();
+    .AddQuery<SampleQuery, SampleQuery.Result, SampleQueryHandler>()
+
+    .AddCommandSender(new Uri("http://localhost:57400"));
 
 var app = builder.Build();
 

@@ -16,4 +16,9 @@ namespace Ironyx.Kernel.Test.Features
     {
         public QueryHandlingFeatureAttribute() : base("QRY", "Query Handling") { }
     }
+
+    public class RequestSendingFeatureAttribute : FeatureAttribute
+    {
+        public RequestSendingFeatureAttribute() : base("RQS", "Request Sending") { }
+    }
 }

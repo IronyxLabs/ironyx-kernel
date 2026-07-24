@@ -1,4 +1,6 @@
-﻿namespace Ironyx.Kernel.Sample.Handlers
+﻿using Ironyx.Kernel.Execution.Senders;
+
+namespace Ironyx.Kernel.Sample.Handlers
 {
     [RequestVersion("v1")]
     public record SampleCommand : Command
@@ -8,11 +10,18 @@
 
     public class SampleCommandHandler : ICommandHandler<SampleCommand>
     {
-        public Task HandleAsync(SampleCommand command, CancellationToken cancellationToken = default)
-        {
-            Console.WriteLine($"Message received: {command.Message}");
+        private readonly IRequestSender _sender;
 
-            return Task.CompletedTask;
+        public SampleCommandHandler(IRequestSender sender)
+        {
+            _sender = sender;
+        }
+
+        public async Task HandleAsync(SampleCommand command, CancellationToken cancellationToken = default)
+        {
+            if (command.Message == "FORWARD") await _sender.SendAsync(new SampleCommand { Message = "Hello from CommandSender!" }, cancellationToken);
+
+            Console.WriteLine($"Message received: {command.Message}");
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Grpc.Core;
 using Ironyx.Kernel.Execution.Contexts;
 using Ironyx.Kernel.Generators;
+using Ironyx.Kernel.Monitoring;
 using Microsoft.Extensions.Logging;
 
 namespace Ironyx.Kernel.Extractors
@@ -9,13 +10,13 @@ namespace Ironyx.Kernel.Extractors
     {
         private readonly IRequestContext _context;
         private readonly IUlidGenerator _generator;
-        private readonly ILogger<RequestContextExtractor> _logger;
+        private readonly LogContext.RequestContextExtractorLogContext _logger;
 
         public RequestContextExtractor(IRequestContext context, IUlidGenerator generator, ILogger<RequestContextExtractor> logger)
         {
             _context = context;
             _generator = generator;
-            _logger = logger;
+            _logger = new LogContext.RequestContextExtractorLogContext(logger);
         }
 
         public async Task ExtractAsync(Metadata metadata, CancellationToken cancellationToken)
@@ -24,27 +25,27 @@ namespace Ironyx.Kernel.Extractors
             if (string.IsNullOrWhiteSpace(correlationId))
             {
                 _context.CorrelationId = _generator.Get();
-                _logger.LogDebug("Correlation Id has been generated: {CorrelationId}", _context.CorrelationId);
+                _logger.LogCorrelationIdGenerated(_context.CorrelationId);
             }
             else
             {
                 _context.CorrelationId = Ulid.Parse(correlationId);
-                _logger.LogDebug("Correlation Id has been received: {CorrelationId}", _context.CorrelationId);
+                _logger.LogCorrelationIdReceived(_context.CorrelationId);
             }
 
             var causationId = metadata.GetCausationId();
             if (string.IsNullOrWhiteSpace(causationId))
             {
-                _logger.LogDebug("Causation Id has not been defined");
+                _logger.LogCausationIdNotDefined();
             }
             else
             {
                 _context.CausationId = Ulid.Parse(causationId);
-                _logger.LogDebug("Causation Id has been received: {CorrelationId}", _context.CausationId);
+                _logger.LogCausationIdReceived(_context.CausationId);
 
             }
             _context.RequestId = _generator.Get();
-            _logger.LogDebug("Request Id has been generated: {RequestId}", _context.RequestId);
+            _logger.LogRequestIdGenerated(_context.RequestId);
         }
     }
 

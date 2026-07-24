@@ -1,9 +1,11 @@
 ﻿using Ironyx.Kernel.Builders;
+using Ironyx.Kernel.Enrichers;
 using Ironyx.Kernel.Execution.Contexts;
 using Ironyx.Kernel.Execution.Registries;
 using Ironyx.Kernel.Extractors;
 using Ironyx.Kernel.Generators;
 using Ironyx.Kernel.Registry;
+using Ironyx.Kernel.Senders;
 using Ironyx.Kernel.Serializers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -22,6 +24,9 @@ namespace Ironyx.Kernel
             builder.Services.AddQueryDispatcher();
 
             builder.Services.AddGrpc();
+            builder.Services.AddTransient<IGenericClient, GrpcGenericClient>();
+
+            builder.Services.AddTransient<IEnricher, RequestContextEnricher>();
 
             builder.Services.AddTransient<IExtractor, RequestContextExtractor>();
 
@@ -37,7 +42,7 @@ namespace Ironyx.Kernel
 
             builder.Services.AddScoped<RequestContext>();
             builder.Services.AddTransient<IRequestContext>(provider => provider.GetRequiredService<RequestContext>());
-            builder.Services.AddScoped<IRequestContextAccessor>(provider => provider.GetRequiredService<RequestContext>());
+            builder.Services.AddTransient<IRequestContextAccessor>(provider => provider.GetRequiredService<RequestContext>());
 
             builder.Services.AddTransient<IUlidGenerator, ULidGenerator>();
 
