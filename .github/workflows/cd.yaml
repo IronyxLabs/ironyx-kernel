@@ -1,0 +1,20 @@
+name: CD
+
+run-name: "[RELEASE] - Publish NuGet Packages"
+
+permissions:
+  contents: read
+  actions: read
+  packages: write
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+
+jobs:
+  cd:
+    uses: IronyxLabs/ironyx-scripts/.github/workflows/dotnet_nuget_cd-pipeline.yaml@v1
+    secrets:
+      nuget-api_key: ${{ secrets.NUGET_API_KEY }}
+      github-token: ${{ secrets.GITHUB_TOKEN }}

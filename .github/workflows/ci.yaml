@@ -1,18 +1,16 @@
 name: CI
 
 on:
-  pull_request:
-    branches:
-      - main
-      - develop
-      - release/*
   workflow_dispatch:
+  push:
+    tags:
+      - "v*"
 
-run-name: ${{ github.event_name == 'pull_request' && format('[PR] - {1} {0}',  github.event.pull_request.number, github.event.pull_request.title) || format('[MANUAL] - Run on {0} branch', github.event.pull_request.number, github.ref_name) }}
+run-name: ${{ format('[TAG] - Build version {0}', github.ref_name) }}
 
 jobs:
   ci:
-    uses: IronyxLabs/ironyx-scripts/.github/workflows/dotnet_ci-pipeline.yaml@v1
+    uses: IronyxLabs/ironyx-scripts/.github/workflows/dotnet_nuget_ci-pipeline.yaml@v1
     secrets:
       sonar-token: ${{ secrets.SONAR_TOKEN }}
       testspace-token: ${{ secrets.TESTSPACE_TOKEN }}

@@ -4,6 +4,13 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Authors>IronyxLabs</Authors>
+    <Company>IronyxLabs</Company>
+    <Description>Define basic types of Ironyx Kernel.</Description>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>ironyx, kernel, cqs</PackageTags>
+    <RepositoryUrl>https://github.com/IronyxLabs/ironyx-kernel</RepositoryUrl>
+    <PackageReleaseNotes>https://github.com/IronyxLabs/ironyx-kernel/releases</PackageReleaseNotes>
   </PropertyGroup>
 
 </Project>
