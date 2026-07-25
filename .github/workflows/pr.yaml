@@ -1,0 +1,21 @@
+name: PR
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+      - release/*
+  workflow_dispatch:
+
+run-name: ${{ github.event_name == 'pull_request' && format('[PR] - {1} {0}',  github.event.pull_request.number, github.event.pull_request.title) || format('[MANUAL] - Run on {0} branch', github.event.pull_request.number, github.ref_name) }}
+
+jobs:
+  ci:
+    uses: IronyxLabs/ironyx-scripts/.github/workflows/dotnet_pr-pipeline.yaml@v1
+    secrets:
+      sonar-token: ${{ secrets.SONAR_TOKEN }}
+      testspace-token: ${{ secrets.TESTSPACE_TOKEN }}
+    with:
+      sonar-project_key: IronyxLabs_ironyx-kernel
+      net-solution: src/Ironyx.Kernel.slnx

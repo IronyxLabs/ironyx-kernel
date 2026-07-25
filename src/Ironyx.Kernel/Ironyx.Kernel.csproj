@@ -4,6 +4,12 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <Authors>IronyxLabs</Authors>
+    <Description>Makes easier to use Kernel functionlity in .NET applications.</Description>
+    <RepositoryUrl>https://github.com/IronyxLabs/ironyx-kernel</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>ironyx, kernel, cqs</PackageTags>
+    <PackageReleaseNotes>https://github.com/IronyxLabs/ironyx-kernel/releases</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
