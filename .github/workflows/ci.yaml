@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+run-name: ${{ format('[TAG] - Build version {0}', github.ref_name) }}
+
+jobs:
+  ci:
+    uses: IronyxLabs/ironyx-scripts/.github/workflows/dotnet_nuget_ci-pipeline.yaml@v1
+    secrets:
+      sonar-token: ${{ secrets.SONAR_TOKEN }}
+      testspace-token: ${{ secrets.TESTSPACE_TOKEN }}
+    with:
+      sonar-project_key: IronyxLabs_ironyx-kernel
+      net-solution: src/Ironyx.Kernel.slnx
