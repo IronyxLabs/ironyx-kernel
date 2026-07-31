@@ -6,6 +6,7 @@ namespace Ironyx.Kernel.Sample.Handlers
     public record SampleCommand : Command
     {
         public string Message { get; init; } = null!;
+        public EventResetMode TestEnum { get; init; }
     }
 
     public class SampleCommandHandler : ICommandHandler<SampleCommand>
@@ -19,9 +20,9 @@ namespace Ironyx.Kernel.Sample.Handlers
 
         public async Task HandleAsync(SampleCommand command, CancellationToken cancellationToken = default)
         {
-            if (command.Message == "FORWARD") await _sender.SendAsync(new SampleCommand { Message = "Hello from CommandSender!" }, cancellationToken);
+            if (command.Message == "FORWARD") await _sender.SendAsync(new SampleCommand { Message = "Hello from CommandSender!", TestEnum = command.TestEnum }, cancellationToken);
 
-            Console.WriteLine($"Message received: {command.Message}");
+            Console.WriteLine($"Message received: {command.Message} (TestEnum: {command.TestEnum})");
         }
     }
 }

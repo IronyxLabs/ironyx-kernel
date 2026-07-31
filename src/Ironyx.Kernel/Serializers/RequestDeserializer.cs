@@ -2,11 +2,17 @@
 using Ironyx.Kernel.Registry;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace Ironyx.Kernel.Serializers
 {
     public class RequestDeserializer : IRequestDeserializer
     {
+        private readonly JsonSerializerOptions _options = new()
+        {
+            PropertyNameCaseInsensitive = true,
+        };
+
         private readonly IRuntimeTypeResolver _typeResolver;
         private readonly LogContext.RequestDeserializerLogContext _logger;
 
@@ -14,6 +20,12 @@ namespace Ironyx.Kernel.Serializers
         {
             _typeResolver = typeResolver;
             _logger = new LogContext.RequestDeserializerLogContext(logger);
+
+            _options = new()
+            {
+                PropertyNameCaseInsensitive = true
+            };
+            _options.Converters.Add(new JsonStringEnumConverter());
         }
 
         public async Task<dynamic> DeserializeAsync(Envelop envelop, CancellationToken cancellationToken)
@@ -30,7 +42,7 @@ namespace Ironyx.Kernel.Serializers
             await writer.FlushAsync(cancellationToken);
             stream.Position = 0;
 
-            var result = await JsonSerializer.DeserializeAsync(stream, type, cancellationToken: cancellationToken) ?? throw new JsonException("Invalid content");
+            var result = await JsonSerializer.DeserializeAsync(stream, type, options: _options, cancellationToken: cancellationToken) ?? throw new JsonException("Invalid content");
             _logger.LogSerialized();
             _logger.LogRequestObject(result);
 
