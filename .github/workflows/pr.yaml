@@ -8,10 +8,6 @@ on:
       - release/*
   workflow_dispatch:
 
-permissions:
-  contents: read
-  packages: read
-
 run-name: ${{ github.event_name == 'pull_request' && format('[PR] - {1} {0}',  github.event.pull_request.number, github.event.pull_request.title) || format('[MANUAL] - Run on {0} branch', github.event.pull_request.number, github.ref_name) }}
 
 jobs:
@@ -20,7 +16,7 @@ jobs:
     secrets:
       sonar-token: ${{ secrets.SONAR_TOKEN }}
       testspace-token: ${{ secrets.TESTSPACE_TOKEN }}
-      github-token: ${{ secrets.GITHUB_TOKEN }}
+      github-token: ${{ secrets.NUGET_READ }}
     with:
       sonar-project_key: IronyxLabs_ironyx-kernel
       net-solution: src/Ironyx.Kernel.slnx
