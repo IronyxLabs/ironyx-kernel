@@ -1,7 +1,6 @@
 ﻿using AutoBogus;
 using Ironyx.Kernel.Execution.Dispatchers;
 using Ironyx.Kernel.Execution.Registries;
-using Ironyx.Kernel.Test.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -9,11 +8,11 @@ using System.Runtime.CompilerServices;
 using Xunit.Abstractions;
 
 [assembly: InternalsVisibleTo("Ironyx.Kernel.Execution")]
-namespace Ironyx.Kernel.Execution.Test.Unit
+namespace Ironyx.Kernel.Test.Unit.Execution
 {
     public class CommandDispatcherTest
     {
-        private ILogger<CommandDispatcher> _logger;
+        private readonly ILogger<CommandDispatcher> _logger;
         private Mock<IHandlerTypeResolver> _resolverMock = null!;
 
         public CommandDispatcherTest(ITestOutputHelper outputHelper)

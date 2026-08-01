@@ -3,14 +3,13 @@ using Ironyx.Kernel.Execution.Dispatchers;
 using Ironyx.Kernel.Extractors;
 using Ironyx.Kernel.Receivers;
 using Ironyx.Kernel.Serializers;
-using Ironyx.Kernel.Test.Features;
-using Ironyx.Kernel.Test.Unit.Fakers;
+using Ironyx.Kernel.Test.Unit.Kernel.Fakers;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.Text.Json;
 using Xunit.Abstractions;
 
-namespace Ironyx.Kernel.Test.Unit.Endpoints
+namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
 {
     public class GrpcEndpointTest
     {

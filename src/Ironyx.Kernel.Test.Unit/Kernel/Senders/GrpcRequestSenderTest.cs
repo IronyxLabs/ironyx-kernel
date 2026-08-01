@@ -2,7 +2,6 @@
 using Grpc.Core;
 using Ironyx.Kernel.Enrichers;
 using Ironyx.Kernel.Senders;
-using Ironyx.Kernel.Test.Features;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.Reflection;
@@ -11,7 +10,7 @@ using System.Text.Json;
 using Xunit.Abstractions;
 
 [assembly: InternalsVisibleTo("Ironyx.Kernel")]
-namespace Ironyx.Kernel.Test.Unit.Senders
+namespace Ironyx.Kernel.Test.Unit.Kernel.Senders
 {
     public class GrpcRequestSenderTest
     {
