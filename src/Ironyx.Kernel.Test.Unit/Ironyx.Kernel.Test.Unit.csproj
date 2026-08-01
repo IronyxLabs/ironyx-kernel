@@ -21,7 +21,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Ironyx.Kernel.Test\Ironyx.Kernel.Test.csproj" />
     <ProjectReference Include="..\Ironyx.Kernel\Ironyx.Kernel.csproj" />
-    <ProjectReference Include="..\Ironyx.Testing\Ironyx.Testing.csproj" />
   </ItemGroup>
 
   <ItemGroup>
