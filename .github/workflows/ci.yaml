@@ -14,8 +14,6 @@ jobs:
     secrets:
       sonar-token: ${{ secrets.SONAR_TOKEN }}
       testspace-token: ${{ secrets.TESTSPACE_TOKEN }}
-      github-token: ${{ secrets.GITHUB_TOKEN }}
-      
+      github-token: ${{ secrets.NUGET_READ }}
     with:
       sonar-project_key: IronyxLabs_ironyx-kernel
-      net-solution: src/Ironyx.Kernel.slnx

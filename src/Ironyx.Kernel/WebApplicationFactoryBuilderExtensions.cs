@@ -5,11 +5,8 @@ using Ironyx.Kernel.Execution.Registries;
 using Ironyx.Kernel.Extractors;
 using Ironyx.Kernel.Generators;
 using Ironyx.Kernel.Registry;
-using Ironyx.Kernel.Senders;
 using Ironyx.Kernel.Serializers;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 using System.Diagnostics.CodeAnalysis;
 
@@ -22,9 +19,6 @@ namespace Ironyx.Kernel
         {
             builder.Services.AddCommandDispatcher();
             builder.Services.AddQueryDispatcher();
-
-            builder.Services.AddGrpc();
-            builder.Services.AddTransient<IGenericClient, GrpcGenericClient>();
 
             builder.Services.AddTransient<IEnricher, RequestContextEnricher>();
 
@@ -47,11 +41,6 @@ namespace Ironyx.Kernel
             builder.Services.AddTransient<IUlidGenerator, ULidGenerator>();
 
             builder.Services.AddTransient<IRequestDeserializer, RequestDeserializer>();
-
-            builder.WebHost.ConfigureKestrel(options => options.Listen(System.Net.IPAddress.Loopback, 57400, listenOptions =>
-            {
-                listenOptions.Protocols = HttpProtocols.Http2;
-            }));
 
             return new KernelBuilder(builder, canonicalTypeRegistry, handlerRegistry);
         }

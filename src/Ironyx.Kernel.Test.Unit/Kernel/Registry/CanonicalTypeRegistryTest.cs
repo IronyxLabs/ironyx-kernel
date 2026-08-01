@@ -1,8 +1,7 @@
 ﻿using Ironyx.Kernel.Registry;
-using Ironyx.Kernel.Test.Features;
 using System.Reflection;
 
-namespace Ironyx.Kernel.Test.Unit.Registry
+namespace Ironyx.Kernel.Test.Unit.Kernel.Registry
 {
     public class CanonicalTypeRegistryTest
     {
@@ -22,7 +21,7 @@ namespace Ironyx.Kernel.Test.Unit.Registry
             sut.Add(typeof(TestCommand));
 
             // Assert
-            Assert.Single(sut.Registrations, r => typeof(TestCommand).FullName.Equals(r.Key.Type)
+            Assert.Single(sut.Registrations, r => typeof(TestCommand).FullName!.Equals(r.Key.Type)
                                                 && r.Key.Version.Equals("v1")
                                                 && r.Value.Equals(typeof(TestCommand)));
         }
@@ -124,7 +123,7 @@ namespace Ironyx.Kernel.Test.Unit.Registry
     }
 }
 
-namespace Ironyx.Kernel.Test.Unit.Registry.V2
+namespace Ironyx.Kernel.Test.Unit.Kernel.Registry.V2
 {
     [RequestVersion("v2")]
     file record TestCommand : Command { }

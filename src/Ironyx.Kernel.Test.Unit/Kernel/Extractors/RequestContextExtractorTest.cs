@@ -1,17 +1,16 @@
 ﻿using Ironyx.Kernel.Execution.Contexts;
 using Ironyx.Kernel.Extractors;
 using Ironyx.Kernel.Generators;
-using Ironyx.Kernel.Test.Features;
-using Ironyx.Kernel.Test.Unit.Fakers;
+using Ironyx.Kernel.Test.Unit.Kernel.Fakers;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit.Abstractions;
 
-namespace Ironyx.Kernel.Test.Unit.Extractors
+namespace Ironyx.Kernel.Test.Unit.Kernel.Extractors
 {
     public class RequestContextExtractorTest
     {
-        private ILogger<RequestContextExtractor> _logger;
+        private readonly ILogger<RequestContextExtractor> _logger;
         private RequestContext _requestContext = null!;
         private Mock<IUlidGenerator> _generatorMock = null!;
 
