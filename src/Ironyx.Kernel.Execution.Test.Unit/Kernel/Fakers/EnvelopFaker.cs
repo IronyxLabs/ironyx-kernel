@@ -1,7 +1,7 @@
 ﻿using Castle.Core.Internal;
 using System.Text.Json;
 
-namespace Ironyx.Kernel.Test.Unit.Fakers
+namespace Ironyx.Kernel.Test.Unit.Kernel.Fakers
 {
     public class EnvelopFaker
     {

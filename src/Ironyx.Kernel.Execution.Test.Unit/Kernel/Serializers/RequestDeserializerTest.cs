@@ -1,8 +1,7 @@
 ﻿using AutoBogus;
 using Ironyx.Kernel.Registry;
 using Ironyx.Kernel.Serializers;
-using Ironyx.Kernel.Test.Features;
-using Ironyx.Kernel.Test.Unit.Fakers;
+using Ironyx.Kernel.Test.Unit.Kernel.Fakers;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit.Abstractions;
@@ -12,7 +11,7 @@ namespace Ironyx.Kernel.Test.Unit.Serializers
     public class RequestDeserializerTest
     {
 
-        private ILogger<RequestDeserializer> _logger;
+        private readonly ILogger<RequestDeserializer> _logger;
         private Mock<IRuntimeTypeResolver> _typeResolverMock = null!;
 
         public RequestDeserializerTest(ITestOutputHelper outputHelper)

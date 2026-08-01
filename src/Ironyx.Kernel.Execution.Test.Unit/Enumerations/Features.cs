@@ -1,6 +1,6 @@
 ﻿using Ironyx.Testing;
 
-namespace Ironyx.Kernel.Test.Features
+namespace Ironyx.Kernel.Test.Unit
 {
     public class GrpcEndpointFeatureAttribute : FeatureAttribute
     {

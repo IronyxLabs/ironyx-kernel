@@ -1,17 +1,16 @@
 ﻿using Grpc.Core;
 using Ironyx.Kernel.Enrichers;
-using Ironyx.Kernel.Test.Features;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit.Abstractions;
 
-namespace Ironyx.Kernel.Test.Unit.Enrichers
+namespace Ironyx.Kernel.Test.Unit.Kernel.Enrichers
 {
     public class RequestContextEnricherTest
     {
 
-        private ILogger<RequestContextEnricher> _logger;
-        private Mock<IRequestContextAccessor> _requestContextMock;
+        private readonly ILogger<RequestContextEnricher> _logger;
+        private Mock<IRequestContextAccessor> _requestContextMock = null!;
 
         public RequestContextEnricherTest(ITestOutputHelper outputHelper)
         {

@@ -1,19 +1,19 @@
 ﻿using AutoBogus;
 using Bogus;
+using Ironyx.Kernel.Execution;
 using Ironyx.Kernel.Execution.Dispatchers;
 using Ironyx.Kernel.Execution.Registries;
-using Ironyx.Kernel.Test.Features;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit.Abstractions;
 
-namespace Ironyx.Kernel.Execution.Test.Unit
+namespace Ironyx.Kernel.Test.Unit.Execution
 {
     public class QueryDispatcherTest
     {
         private readonly ILogger<QueryDispatcher> _logger;
-        private Mock<IHandlerTypeResolver> _resolverMock;
+        private Mock<IHandlerTypeResolver> _resolverMock = null!;
 
         public QueryDispatcherTest(ITestOutputHelper outputHelper)
         {

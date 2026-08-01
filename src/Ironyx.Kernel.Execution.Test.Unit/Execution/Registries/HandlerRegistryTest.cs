@@ -1,7 +1,6 @@
 ﻿using Ironyx.Kernel.Execution.Registries;
-using Ironyx.Kernel.Test.Features;
 
-namespace Ironyx.Kernel.Execution.Test.Unit.Registries
+namespace Ironyx.Kernel.Test.Unit.Execution.Registries
 {
     public class HandlerRegistryTest
     {
