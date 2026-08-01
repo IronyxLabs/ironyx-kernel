@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Ironyx.Kernel.Abstraction\Ironyx.Kernel.Abstraction.csproj" />
     <ProjectReference Include="..\Ironyx.Kernel.Execution\Ironyx.Kernel.Execution.csproj" />
     <ProjectReference Include="..\Ironyx.Kernel\Ironyx.Kernel.csproj" />
   </ItemGroup>
