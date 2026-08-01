@@ -4,6 +4,8 @@ using Ironyx.Kernel.Execution.Senders;
 using Ironyx.Kernel.Registry;
 using Ironyx.Kernel.Senders;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Ironyx.Kernel.Builders
@@ -49,6 +51,19 @@ namespace Ironyx.Kernel.Builders
         {
             _builder.Services.AddGrpcClient<GenericAPI.GenericAPIClient>(options => options.Address = url);
             _builder.Services.AddTransient<IRequestSender, GrpcRequestSender>();
+
+            return this;
+        }
+
+        public KernelBuilder AddGrpc(int port = 8080)
+        {
+            _builder.Services.AddGrpc();
+            _builder.Services.AddTransient<IGenericClient, GrpcGenericClient>();
+
+            _builder.WebHost.ConfigureKestrel(options => options.Listen(System.Net.IPAddress.Loopback, port, listenOptions =>
+            {
+                listenOptions.Protocols = HttpProtocols.Http2;
+            }));
 
             return this;
         }
