@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Company>IronyxLabs</Company>
+    <Description>Provide helpers for testing.</Description>
+    <RepositoryUrl>https://github.com/IronyxLabs/ironyx-kernel</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>ironyx, kernel, test, xunit</PackageTags>
+    <PackageReleaseNotes>https://github.com/IronyxLabs/ironyx-kernel/releases</PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.extensibility.core" Version="2.9.3" />
+    <PackageReference Include="xunit.extensibility.execution" Version="2.9.3" />
+  </ItemGroup>
+
+</Project>
