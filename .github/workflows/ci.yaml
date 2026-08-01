@@ -17,4 +17,3 @@ jobs:
       github-token: ${{ secrets.NUGET_READ }}
     with:
       sonar-project_key: IronyxLabs_ironyx-kernel
-      net-solution: src/Ironyx.Kernel.slnx
