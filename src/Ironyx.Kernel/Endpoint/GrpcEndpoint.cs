@@ -38,7 +38,7 @@ namespace Ironyx.Kernel.Receivers
             await _commandDispatcher.DispatchAsync(await _deserializer.DeserializeAsync(envelop, context.CancellationToken), context.CancellationToken);
 
             _logger.CommandAccepted();
-            return GrpcReply.Accepted.Reply;
+            return new Reply();
         }
 
         public override async Task<Reply> GetAsync(Envelop envelop, ServerCallContext context)
@@ -52,22 +52,10 @@ namespace Ironyx.Kernel.Receivers
             var result = await _queryDispatcher.DispatchAsync<dynamic>(query, context.CancellationToken);
 
             _logger.QueryExecuted();
-            return GrpcReply.Ok(JsonSerializer.Serialize(result)).Reply;
-        }
-    }
-
-    file sealed class GrpcReply
-    {
-        public Status Status { get; }
-        public Reply Reply { get; }
-
-        public static GrpcReply Accepted => new(new Status(StatusCode.OK, "Ok"), new Reply() { Status = "ACCEPTED" });
-        public static GrpcReply Ok(string data) => new(new Status(StatusCode.OK, "Ok"), new Reply() { Status = "OK", Data = data });
-
-        public GrpcReply(Status status, Reply reply)
-        {
-            Status = status;
-            Reply = reply;
+            return new Reply()
+            {
+                Data = JsonSerializer.Serialize(result)
+            };
         }
     }
 }

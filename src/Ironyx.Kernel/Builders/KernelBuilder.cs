@@ -1,6 +1,7 @@
 ﻿using Ironyx.Kernel.Execution;
 using Ironyx.Kernel.Execution.Registries;
 using Ironyx.Kernel.Execution.Senders;
+using Ironyx.Kernel.Interceptors;
 using Ironyx.Kernel.Registry;
 using Ironyx.Kernel.Senders;
 using Microsoft.AspNetCore.Builder;
@@ -57,13 +58,17 @@ namespace Ironyx.Kernel.Builders
 
         public KernelBuilder AddGrpc(int port = 8080)
         {
-            _builder.Services.AddGrpc();
+            _builder.Services.AddGrpc(options =>
+            {
+                options.Interceptors.Add<ErrorHandlingInterceptor>();
+                options.Interceptors.Add<LoggerInterceptor>();
+            });
             _builder.Services.AddTransient<IGenericClient, GrpcGenericClient>();
 
-            _builder.WebHost.ConfigureKestrel(options => options.Listen(System.Net.IPAddress.Loopback, port, listenOptions =>
+            _builder.WebHost.ConfigureKestrel(options =>
             {
-                listenOptions.Protocols = HttpProtocols.Http2;
-            }));
+                options.Listen(System.Net.IPAddress.Loopback, port, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
+            });
 
             return this;
         }
