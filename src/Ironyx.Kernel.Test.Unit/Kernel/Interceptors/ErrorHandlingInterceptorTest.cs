@@ -12,7 +12,8 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Interceptors
         }
 
         [Fact(DisplayName = "[UNIT][EHI-001]: Handle Internal Server Error")]
-        public async Task ErrorHandlingIntercepter_UnaryServerHandle_HandleInternalServerErrror()
+        [ErrorHandlingFeature]
+        public async Task ErrorHandlingIntercepter_UnaryServerHandle_HandleInternalServerError()
         {
             // Arrange
             var sut = CreateSUT();
@@ -23,6 +24,21 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Interceptors
             Assert.Equal(StatusCode.Internal, result.StatusCode);
             Assert.Equal(StatusCode.Internal, result.Status.StatusCode);
             Assert.Equal("An internal server error occured", result.Status.Detail);
+        }
+
+        [Fact(DisplayName = "[UNIT][EHI-002]: Handle Not Found")]
+        [ErrorHandlingFeature]
+        public async Task ErrorHandlingIntercepter_UnaryServerHandle_HandleNotFoundError()
+        {
+            // Arrange
+            var sut = CreateSUT();
+
+            // Act
+            // Assert
+            var result = await Assert.ThrowsAsync<RpcException>(async () => await sut.UnaryServerHandler(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend(), new UnaryServerMethodFaker().NotFound()));
+            Assert.Equal(StatusCode.NotFound, result.StatusCode);
+            Assert.Equal(StatusCode.NotFound, result.Status.StatusCode);
+            Assert.Equal("Resource not found", result.Status.Detail);
         }
     }
 }
