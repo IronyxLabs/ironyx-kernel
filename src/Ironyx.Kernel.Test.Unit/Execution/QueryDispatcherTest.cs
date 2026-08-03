@@ -1,6 +1,7 @@
 ﻿using AutoBogus;
 using Bogus;
 using Ironyx.Kernel.Execution;
+using Ironyx.Kernel.Execution.Behaviors;
 using Ironyx.Kernel.Execution.Dispatchers;
 using Ironyx.Kernel.Execution.Registries;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,10 +23,11 @@ namespace Ironyx.Kernel.Test.Unit.Execution
                           .CreateLogger<QueryDispatcher>();
         }
 
-        private QueryDispatcher CreateSUT(Func<string> action)
+        private QueryDispatcher CreateSUT(Func<string> action, Action? preAction = null)
         {
             var serviceCollection = new ServiceCollection();
             serviceCollection.AddSingleton(new TestQueryHandler(action));
+            if (preAction is not null) serviceCollection.AddSingleton(new PreTestQueryHandler(preAction));
 
             _resolverMock = new Mock<IHandlerTypeResolver>();
 
@@ -48,6 +50,23 @@ namespace Ironyx.Kernel.Test.Unit.Execution
             // Assert
             Assert.Equal(value, result);
         }
+
+        [Fact(DisplayName = "[UNIT][QRD-001]: Use PreHandlers")]
+        [QueryHandlingFeature]
+        public async Task QueryDispatcher_DispatchAsync_UsePreHandler()
+        {
+            // Arrange
+            var called = false;
+            var sut = CreateSUT(() => { return ""; }, () => called = true);
+
+            _resolverMock.SetupGet(r => r[typeof(TestQuery)]).Returns(new HandlerTypeDescription { Handler = typeof(TestQueryHandler), PreHandlers = [typeof(PreTestQueryHandler)] });
+
+            // Act
+            var result = await sut.DispatchAsync<string>(new AutoFaker<TestQuery>().Generate(), default);
+
+            // Assert
+            Assert.True(called);
+        }
     }
 
     file record TestQuery : Query<string> { }
@@ -64,6 +83,23 @@ namespace Ironyx.Kernel.Test.Unit.Execution
         public Task<string> HandleAsync(TestQuery query, CancellationToken cancellationToken)
         {
             return Task.FromResult(_action());
+        }
+    }
+
+    file class PreTestQueryHandler : IPreHandler<TestQuery>
+    {
+        private readonly Action _action;
+
+        public PreTestQueryHandler(Action action)
+        {
+            _action = action;
+        }
+
+        public Task HandleAsync(TestQuery request, CancellationToken cancellationToken = default)
+        {
+            _action();
+
+            return Task.CompletedTask;
         }
     }
 }

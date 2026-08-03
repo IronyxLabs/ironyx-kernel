@@ -1,5 +1,6 @@
 ﻿
 using Ironyx.Kernel.Abstraction.Interfaces;
+using Ironyx.Kernel.Execution.Extensions;
 using Ironyx.Kernel.Execution.Registries;
 using Microsoft.Extensions.Logging;
 
@@ -26,11 +27,7 @@ namespace Ironyx.Kernel.Execution.Dispatchers
             var description = _resolver[type];
             var handler = (dynamic)(_provider.GetService(description.Handler) ?? throw new InvalidOperationException($"Handler not found for command: {type.FullName}"));
 
-            foreach (var preHandlerType in description.PreHandlers)
-            {
-                var preHandler = (dynamic)_provider.GetService(preHandlerType)!;
-                await preHandler.HandleAsync((dynamic)command, cancellationToken).ConfigureAwait(false);
-            }
+            await description.PreHandlers.InvokeAsync(command, _provider, cancellationToken);
 
             await handler.HandleAsync((dynamic)command, cancellationToken);
             _logger.LogDebug("Dispatching {Command} has been finished", type.Name);
