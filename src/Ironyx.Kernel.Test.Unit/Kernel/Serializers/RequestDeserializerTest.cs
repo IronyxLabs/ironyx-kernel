@@ -1,6 +1,7 @@
 ﻿using AutoBogus;
 using Ironyx.Kernel.Registry;
 using Ironyx.Kernel.Serializers;
+using Ironyx.Kernel.Test.Unit.Execution.Requests;
 using Ironyx.Kernel.Test.Unit.Kernel.Fakers;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -70,11 +71,5 @@ namespace Ironyx.Kernel.Test.Unit.Serializers
             // Assert
             await Assert.ThrowsAsync<ArgumentNullException>(async () => await sut.DeserializeAsync(new EnvelopFaker().Use(command).WithoutVersion().Generate(), default));
         }
-    }
-
-    [RequestVersion("v1")]
-    file record TestCommand : Command
-    {
-        public required string Message { get; init; }
     }
 }

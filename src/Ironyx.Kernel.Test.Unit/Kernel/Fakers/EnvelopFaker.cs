@@ -10,6 +10,15 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Fakers
         private string? _version;
         private string? _payload;
 
+        public EnvelopFaker()
+        {
+            var faker = new Faker();
+
+            _type = faker.Random.String();
+            _version = faker.Random.String();
+            _payload = faker.Random.String();
+        }
+
         public EnvelopFaker Use<TCommand>(TCommand command)
             where TCommand : Command
         {
@@ -46,12 +55,6 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Fakers
 
         public Envelop Generate()
         {
-            var faker = new Faker();
-
-            _type = faker.Random.String();
-            _version = faker.Random.String();
-            _payload = faker.Random.String();
-
             return new Envelop { Type = _type, Version = _version, Payload = _payload };
         }
     }
