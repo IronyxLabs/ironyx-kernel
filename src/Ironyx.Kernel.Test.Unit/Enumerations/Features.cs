@@ -21,4 +21,9 @@ namespace Ironyx.Kernel.Test.Unit
     {
         public RequestSendingFeatureAttribute() : base("RQS", "Request Sending") { }
     }
+
+    public class ErrorHandlingFeature : FeatureAttribute
+    {
+        public ErrorHandlingFeature() : base("ERH", "Error Handling") { }
+    }
 }

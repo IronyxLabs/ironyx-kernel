@@ -1,4 +1,5 @@
-﻿using Castle.Core.Internal;
+﻿using Bogus;
+using Castle.Core.Internal;
 using System.Text.Json;
 
 namespace Ironyx.Kernel.Test.Unit.Kernel.Fakers
@@ -45,6 +46,12 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Fakers
 
         public Envelop Generate()
         {
+            var faker = new Faker();
+
+            _type = faker.Random.String();
+            _version = faker.Random.String();
+            _payload = faker.Random.String();
+
             return new Envelop { Type = _type, Version = _version, Payload = _payload };
         }
     }

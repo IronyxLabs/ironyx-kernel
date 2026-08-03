@@ -75,25 +75,7 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
             _extractorMock.Verify(u => u.ExtractAsync(callContext.RequestHeaders, It.IsAny<CancellationToken>()), Times.Once);
         }
 
-        [Fact(DisplayName = "[UNIT][GRE-003]: Accept Command")]
-        [GrpcEndpointFeature]
-        public async Task GrpcEndpoint_SendAsync_AcceptCommand()
-        {
-            // Arrange
-            var sut = CreateSUT();
-            var callContext = ServerCallContextFaker.CreateSend();
-            var command = new AutoFaker<TestCommand>().Generate();
-
-            _deserializerMock.Setup(d => d.DeserializeAsync(It.IsAny<Envelop>(), It.IsAny<CancellationToken>())).ReturnsAsync(command);
-
-            // Act
-            var reply = await sut.SendAsync(new EnvelopFaker().Use(command).Generate(), callContext);
-
-            // Assert
-            Assert.Equal(new Reply() { Status = "ACCEPTED" }, reply);
-        }
-
-        [Fact(DisplayName = "[UNIT][GRE-004]: Receving Query")]
+        [Fact(DisplayName = "[UNIT][GRE-003]: Receving Query")]
         [GrpcEndpointFeature]
         public async Task GrpcEndpoint_GetAsync_ReceivingQuery()
         {
@@ -110,7 +92,7 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
             var reply = await sut.GetAsync(new EnvelopFaker().Use<TestQuery, TestQuery.Result>(query).Generate(), callContext);
 
             // Assert
-            Assert.Equal(new Reply() { Status = "OK", Data = JsonSerializer.Serialize(result) }, reply);
+            Assert.Equal(new Reply() { Data = JsonSerializer.Serialize(result) }, reply);
         }
     }
 
