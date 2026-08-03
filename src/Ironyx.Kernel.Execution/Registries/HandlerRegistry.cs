@@ -14,11 +14,11 @@
             }
         }
 
-        public void Add(Type command, Type handler)
+        public void Add(Type command, Type handler, IEnumerable<Type> preHandlers)
         {
             if (_registrations.ContainsKey(command)) throw new InvalidOperationException($"Handler has already been registered for type: {command}");
 
-            _registrations.Add(command, new HandlerTypeDescription { Handler = handler });
+            _registrations.Add(command, new HandlerTypeDescription { Handler = handler, PreHandlers = preHandlers });
         }
     }
 }

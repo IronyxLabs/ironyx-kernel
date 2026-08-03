@@ -9,7 +9,7 @@ namespace Ironyx.Kernel.Execution.Extensions
         {
             foreach (var handlerType in handlerTypes)
             {
-                await ((dynamic)provider.GetService(handlerType))!.HandleAsync((dynamic)request, cancellationToken);
+                await ((dynamic)provider.GetService(handlerType)!).HandleAsync((dynamic)request, cancellationToken);
             }
         }
     }

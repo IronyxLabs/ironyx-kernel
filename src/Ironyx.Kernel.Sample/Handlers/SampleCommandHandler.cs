@@ -1,4 +1,5 @@
-﻿using Ironyx.Kernel.Execution.Senders;
+﻿using FluentValidation;
+using Ironyx.Kernel.Execution.Senders;
 
 namespace Ironyx.Kernel.Sample.Handlers
 {
@@ -7,6 +8,14 @@ namespace Ironyx.Kernel.Sample.Handlers
     {
         public string Message { get; init; } = null!;
         public EventResetMode TestEnum { get; init; }
+    }
+
+    public class SampleCommandValidator : AbstractValidator<SampleCommand>
+    {
+        public SampleCommandValidator()
+        {
+            RuleFor(c => c.Message).NotEqual("INVALID_INPUT");
+        }
     }
 
     public class SampleCommandHandler : ICommandHandler<SampleCommand>

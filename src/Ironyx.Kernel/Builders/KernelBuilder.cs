@@ -1,7 +1,9 @@
 ﻿using Ironyx.Kernel.Execution;
+using Ironyx.Kernel.Execution.Behaviors;
 using Ironyx.Kernel.Execution.Registries;
 using Ironyx.Kernel.Execution.Senders;
 using Ironyx.Kernel.Interceptors;
+using Ironyx.Kernel.Options;
 using Ironyx.Kernel.Registry;
 using Ironyx.Kernel.Senders;
 using Microsoft.AspNetCore.Builder;
@@ -24,24 +26,34 @@ namespace Ironyx.Kernel.Builders
             _handlerRegistry = handlerRegistry;
         }
 
-        public KernelBuilder AddCommand<TCommand, THandler>()
+        public KernelBuilder AddCommand<TCommand, THandler>(Action<RequestBuilder<TCommand>>? build = null)
             where TCommand : Command
             where THandler : class, ICommandHandler<TCommand>
         {
+            var builder = new RequestBuilder<TCommand>(new RequestOptions<TCommand>(), _builder.Services);
+            builder.AddPreHandler<ValidationBehavior<TCommand>>();
+
+            build?.Invoke(builder);
+
             _canonicalTypeRegistry.Add(typeof(TCommand));
-            _handlerRegistry.Add(typeof(TCommand), typeof(THandler));
+            _handlerRegistry.Add(typeof(TCommand), typeof(THandler), builder.Options.PreHandlers);
 
             _builder.Services.AddTransient<THandler>();
 
             return this;
         }
 
-        public KernelBuilder AddQuery<TQuery, TResult, THandler>()
+        public KernelBuilder AddQuery<TQuery, TResult, THandler>(Action<RequestBuilder<TQuery>>? build = null)
             where TQuery : Query<TResult>
             where THandler : class, IQueryHandler<TQuery, TResult>
         {
+            var builder = new RequestBuilder<TQuery>(new RequestOptions<TQuery>(), _builder.Services);
+            builder.AddPreHandler<ValidationBehavior<TQuery>>();
+
+            build?.Invoke(builder);
+
             _canonicalTypeRegistry.Add(typeof(TQuery));
-            _handlerRegistry.Add(typeof(TQuery), typeof(THandler));
+            _handlerRegistry.Add(typeof(TQuery), typeof(THandler), builder.Options.PreHandlers);
 
             _builder.Services.AddTransient<THandler>();
 

@@ -2,6 +2,7 @@
 
 namespace Ironyx.Kernel.Test.Unit.Execution.Registries
 {
+    // TODO: Refactor
     public class HandlerRegistryTest
     {
         private HandlerRegistry CreateSUT()
@@ -17,7 +18,7 @@ namespace Ironyx.Kernel.Test.Unit.Execution.Registries
             var sut = CreateSUT();
 
             // Act
-            sut.Add(typeof(TestCommand), typeof(TestCommandHandler));
+            sut.Add(typeof(TestCommand), typeof(TestCommandHandler), []);
 
             // Assert
             //Assert.Equal(typeof(TestCommandHandler), sut[typeof(TestCommand)]);
@@ -30,11 +31,11 @@ namespace Ironyx.Kernel.Test.Unit.Execution.Registries
             // Arrange
             var sut = CreateSUT();
 
-            sut.Add(typeof(TestCommand), typeof(TestCommandHandler));
+            sut.Add(typeof(TestCommand), typeof(TestCommandHandler), []);
 
             // Act
             // Assert
-            Assert.Throws<InvalidOperationException>(() => sut.Add(typeof(TestCommand), typeof(TestCommandHandler)));
+            Assert.Throws<InvalidOperationException>(() => sut.Add(typeof(TestCommand), typeof(TestCommandHandler), []));
         }
 
         [Fact(DisplayName = "[UNIT][CHR-003]: Handler has not been registered")]

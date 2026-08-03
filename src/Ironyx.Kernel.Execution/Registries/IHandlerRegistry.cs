@@ -4,6 +4,6 @@
     {
         HandlerTypeDescription this[Type type] { get; }
 
-        void Add(Type command, Type handler);
+        void Add(Type command, Type handler, IEnumerable<Type> preHandlers);
     }
 }
