@@ -23,6 +23,7 @@ namespace Ironyx.Kernel.Sample.Handlers
             if (command.Message == "FORWARD") await _sender.SendAsync(new SampleCommand { Message = "Hello from CommandSender!", TestEnum = command.TestEnum }, cancellationToken);
 
             Console.WriteLine($"Message received: {command.Message} (TestEnum: {command.TestEnum})");
+            throw new BusinessRuleException("BUSINESS_001", "Test Business Exception");
         }
     }
 }

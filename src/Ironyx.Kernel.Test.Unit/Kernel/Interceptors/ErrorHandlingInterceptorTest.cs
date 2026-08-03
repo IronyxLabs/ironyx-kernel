@@ -1,5 +1,6 @@
 ﻿using AutoBogus;
 using Grpc.Core;
+using Ironyx.Kernel.Execution.Constants;
 using Ironyx.Kernel.Interceptors;
 using Ironyx.Kernel.Test.Unit.Kernel.Fakers;
 
@@ -57,6 +58,48 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Interceptors
             Assert.Equal(StatusCode.AlreadyExists, result.StatusCode);
             Assert.Equal(StatusCode.AlreadyExists, result.Status.StatusCode);
             Assert.Equal(exception.Message, result.Status.Detail);
+        }
+
+        [Fact(DisplayName = "[UNIT][EHI-004]: Handle Business Rule Error")]
+        [ErrorHandlingFeature]
+        public async Task ErrorHandlingIntercepter_UnaryServerHandle_HandleBusinessRuleError()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var exception = new AutoFaker<BusinessRuleException>().Generate();
+
+            // Act
+            // Assert
+            var result = await Assert.ThrowsAsync<RpcException>(async () => await sut.UnaryServerHandler(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend(), new UnaryServerMethodFaker().BusinessRule(exception)));
+            Assert.Equal(StatusCode.InvalidArgument, result.StatusCode);
+            Assert.Equal(StatusCode.InvalidArgument, result.Status.StatusCode);
+            Assert.Equal(exception.Message, result.Status.Detail);
+            Assert.Equal(exception.ErrorCode, result.Trailers.GetErrorCode());
+        }
+
+        [Fact(DisplayName = "[UNIT][EHI-005]: Handle Business Rule Error without Error Code")]
+        [ErrorHandlingFeature]
+        public async Task ErrorHandlingIntercepter_UnaryServerHandle_HandleBusinessRuleErrorWithoutErrorCode()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var exception = new AutoFaker<BusinessRuleException>().Ignore(e => e.ErrorCode).Generate();
+
+            // Act
+            // Assert
+            var result = await Assert.ThrowsAsync<RpcException>(async () => await sut.UnaryServerHandler(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend(), new UnaryServerMethodFaker().BusinessRule(exception)));
+            Assert.Equal(StatusCode.InvalidArgument, result.StatusCode);
+            Assert.Equal(StatusCode.InvalidArgument, result.Status.StatusCode);
+            Assert.Equal(exception.Message, result.Status.Detail);
+            Assert.Equal(nameof(StatusCode.InvalidArgument), result.Trailers.GetErrorCode());
+        }
+    }
+
+    file static class ErrorHandlingInterceptorExtensions
+    {
+        public static string? GetErrorCode(this Metadata metadata)
+        {
+            return metadata.FirstOrDefault(m => m.Key == GrpcConstants.ErrorCode)?.Value;
         }
     }
 }
