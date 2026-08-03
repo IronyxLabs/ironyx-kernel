@@ -21,12 +21,12 @@ namespace Ironyx.Kernel.Test.Unit.Execution.Behaviors
                           .CreateLogger<ValidationBehavior<TestCommand>>();
         }
 
-        private ValidationBehavior<TestCommand> CreateSUT()
+        private ValidationBehavior<TestCommand> CreateSUT(bool register = true)
         {
             _validatorMock = new Mock<IValidator<TestCommand>>();
 
             var services = new ServiceCollection();
-            services.AddSingleton(_validatorMock.Object);
+            if (register) services.AddSingleton(_validatorMock.Object);
 
             return new ValidationBehavior<TestCommand>(services.BuildServiceProvider(), _logger);
         }
@@ -44,6 +44,21 @@ namespace Ironyx.Kernel.Test.Unit.Execution.Behaviors
 
             // Assert
             _validatorMock.Verify(v => v.ValidateAsync(It.Is<ValidationContext<TestCommand>>(c => c.ThrowOnFailures && c.InstanceToValidate == command), It.IsAny<CancellationToken>()), Times.Once);
+        }
+
+        [Fact(DisplayName = "[UNIT][VLB-002]: No Validator Found")]
+        [ErrorHandlingFeature]
+        public async Task ValidationBehavior_ValidateAsync_NoValidatorFound()
+        {
+            // Arrange
+            var sut = CreateSUT(false);
+            var command = new CommandFaker().Generate();
+
+            // Act
+            await sut.HandleAsync(command, default);
+
+            // Assert
+            _validatorMock.Verify(v => v.ValidateAsync(It.IsAny<ValidationContext<TestCommand>>(), It.IsAny<CancellationToken>()), Times.Never);
         }
     }
 }

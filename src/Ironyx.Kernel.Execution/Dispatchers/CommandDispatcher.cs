@@ -18,12 +18,19 @@ namespace Ironyx.Kernel.Execution.Dispatchers
             _logger = logger;
         }
 
-        public async Task DispatchAsync(ICommand command, CancellationToken cancellationToken)
+        public async Task DispatchAsync(IRequest command, CancellationToken cancellationToken)
         {
             var type = command.GetType();
 
             _logger.LogDebug("Dispatching {Command}", type.Name);
-            var handler = (dynamic)(_provider.GetService(_resolver[type]) ?? throw new InvalidOperationException($"Handler not found for command: {type.FullName}"));
+            var description = _resolver[type];
+            var handler = (dynamic)(_provider.GetService(description.Handler) ?? throw new InvalidOperationException($"Handler not found for command: {type.FullName}"));
+
+            foreach (var preHandlerType in description.PreHandlers)
+            {
+                var preHandler = (dynamic)_provider.GetService(preHandlerType)!;
+                await preHandler.HandleAsync((dynamic)command, cancellationToken).ConfigureAwait(false);
+            }
 
             await handler.HandleAsync((dynamic)command, cancellationToken);
             _logger.LogDebug("Dispatching {Command} has been finished", type.Name);

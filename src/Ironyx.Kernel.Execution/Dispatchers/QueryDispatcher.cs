@@ -22,7 +22,7 @@ namespace Ironyx.Kernel.Execution.Dispatchers
             var type = query.GetType();
 
             _logger.LogDebug("Dispatching {Query}", type.Name);
-            var handler = (dynamic)(_provider.GetService(_resolver[type]) ?? throw new InvalidOperationException($"Handler not found for query: {type.FullName}"));
+            var handler = (dynamic)(_provider.GetService(_resolver[type].Handler) ?? throw new InvalidOperationException($"Handler not found for query: {type.FullName}"));
 
             var result = await handler.HandleAsync((dynamic)query, cancellationToken);
             _logger.LogDebug("Dispatching {Query} has been finished", type.Name);

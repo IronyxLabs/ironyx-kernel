@@ -1,8 +1,8 @@
 ﻿using FluentValidation;
 using Ironyx.Kernel.Abstraction.Interfaces;
+using Ironyx.Kernel.Execution.Monitoring;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using static Ironyx.Kernel.Execution.Monitoring.LogContext;
 
 namespace Ironyx.Kernel.Execution.Behaviors
 {
@@ -20,8 +20,18 @@ namespace Ironyx.Kernel.Execution.Behaviors
 
         public async Task HandleAsync(TRequest request, CancellationToken cancellationToken = default)
         {
+            _logger.LogValidating(request.GetType().FullName!);
+
             var validator = _provider.GetService<IValidator<TRequest>>();
+            if (validator is null)
+            {
+                _logger.LogNoValidator(request.GetType().FullName!);
+                return;
+            }
+
             await validator.ValidateAndThrowAsync(request, cancellationToken);
+
+            _logger.LogHasBeenValidated(request.GetType().FullName!);
         }
     }
 }

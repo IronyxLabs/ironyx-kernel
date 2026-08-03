@@ -40,7 +40,7 @@ namespace Ironyx.Kernel.Test.Unit.Execution
             var value = new Faker().Random.String2(10);
             var sut = CreateSUT(() => value);
 
-            _resolverMock.SetupGet(r => r[typeof(TestQuery)]).Returns(typeof(TestQueryHandler));
+            _resolverMock.SetupGet(r => r[typeof(TestQuery)]).Returns(new HandlerTypeDescription { Handler = typeof(TestQueryHandler) });
 
             // Act
             var result = await sut.DispatchAsync<string>(new AutoFaker<TestQuery>().Generate(), default);
