@@ -1,6 +1,6 @@
 ﻿namespace Ironyx.Kernel.Abstraction.Interfaces
 {
-    public interface IQuery : IRequest
+    public interface IRequest
     {
     }
 }
