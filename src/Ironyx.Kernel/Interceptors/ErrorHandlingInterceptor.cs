@@ -19,6 +19,10 @@ namespace Ironyx.Kernel.Interceptors
             {
                 throw RpcExceptions.NotFound(exception);
             }
+            catch (ConflictException exception)
+            {
+                throw RpcExceptions.Conflict(exception);
+            }
             catch (Exception exception)
             {
                 throw RpcExceptions.InternalServerError(exception);
@@ -29,6 +33,7 @@ namespace Ironyx.Kernel.Interceptors
     file static class RpcExceptions
     {
         public static RpcException InternalServerError(Exception exception) => new(new Status(StatusCode.Internal, "An internal server error occured", exception));
-        public static RpcException NotFound(NotFoundException exception) => new(new Status(StatusCode.NotFound, "Resource not found", exception));
+        public static RpcException NotFound(NotFoundException exception) => new(new Status(StatusCode.NotFound, exception.Message, exception));
+        public static RpcException Conflict(ConflictException exception) => new(new Status(StatusCode.AlreadyExists, exception.Message, exception));
     }
 }

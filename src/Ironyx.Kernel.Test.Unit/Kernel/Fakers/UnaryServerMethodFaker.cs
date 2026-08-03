@@ -12,6 +12,7 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Fakers
         }
 
         public UnaryServerMethod<Envelop, Reply> InternalServerError() => Throw(new AutoFaker<Exception>().Generate());
-        public UnaryServerMethod<Envelop, Reply> NotFound() => Throw(new AutoFaker<NotFoundException>().Generate());
+        public UnaryServerMethod<Envelop, Reply> NotFound(NotFoundException exception) => Throw(exception);
+        public UnaryServerMethod<Envelop, Reply> Conflict(ConflictException exception) => Throw(exception);
     }
 }
