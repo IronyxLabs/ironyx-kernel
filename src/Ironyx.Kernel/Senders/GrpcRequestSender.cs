@@ -1,4 +1,5 @@
-﻿using Grpc.Core;
+﻿using Google.Rpc;
+using Grpc.Core;
 using Ironyx.Kernel.Enrichers;
 using Ironyx.Kernel.Execution.Senders;
 using Ironyx.Kernel.Monitoring;
@@ -39,8 +40,28 @@ namespace Ironyx.Kernel.Senders
             _logger.LogEnvelop(envelop);
             _logger.LogMetadata(metadata);
 
-            var reply = await _client.GetAsync(envelop, metadata, cancellationToken);
-            return await reply.Data.DeserializeAsync<TResult>(cancellationToken);
+            try
+            {
+                var reply = await _client.GetAsync(envelop, metadata, cancellationToken);
+                return await reply.Data.DeserializeAsync<TResult>(cancellationToken);
+            }
+            catch (RpcException exception)
+            {
+                var status = exception.GetRpcStatus();
+                switch (status!.Code)
+                {
+                    case (int)StatusCode.FailedPrecondition:
+                        throw new BusinessRuleException(status.Message, exception) { ErrorCode = status.Details[0].Unpack<ErrorInfo>().Reason };
+                    case (int)StatusCode.AlreadyExists:
+                        throw new ConflictException(status.Message, exception);
+                    case (int)StatusCode.NotFound:
+                        throw new NotFoundException(status.Message, exception);
+                    case (int)StatusCode.Internal:
+                        throw new InvalidOperationException(status.Message, exception);
+                    default:
+                        throw;
+                }
+            }
         }
 
         public async Task SendAsync<TCommand>(TCommand command, CancellationToken cancellationToken)

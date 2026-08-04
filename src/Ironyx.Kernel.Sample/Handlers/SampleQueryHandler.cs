@@ -27,9 +27,10 @@ namespace Ironyx.Kernel.Sample.Handlers
         {
             if (query.Name == "FORWARD")
             {
-                return (await _sender.GetAsync<SampleQuery, SampleQuery.Result>(new SampleQuery { Name = "Ironyx" }, cancellationToken))!;
+                return (await _sender.GetAsync<SampleQuery, SampleQuery.Result>(new SampleQuery { Name = "Hello" }, cancellationToken))!;
             }
 
+            throw new BusinessRuleException("BUSS_001", "Business Exception");
             return new SampleQuery.Result { Message = $"Hello {query.Name}" };
         }
     }

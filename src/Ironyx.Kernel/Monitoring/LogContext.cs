@@ -1,6 +1,7 @@
 ﻿using Grpc.Core;
 using Ironyx.Kernel.Enrichers;
 using Ironyx.Kernel.Extractors;
+using Ironyx.Kernel.Handlers;
 using Ironyx.Kernel.Receivers;
 using Ironyx.Kernel.Senders;
 using Ironyx.Kernel.Serializers;
@@ -88,6 +89,11 @@ namespace Ironyx.Kernel.Monitoring
 
             [LoggerMessage(Level = LogLevel.Trace, Message = "Metadata: {@Metadata}")]
             public partial void LogMetadata(Metadata metadata);
+        }
+
+        public partial class GrpcErrorHandlerLogContext(ILogger<GrpcErrorHandler> logger)
+        {
+
         }
     }
 }
