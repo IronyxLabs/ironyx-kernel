@@ -27,9 +27,9 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Interceptors
             // Act
             // Assert
             var result = await Assert.ThrowsAsync<RpcException>(async () => await sut.UnaryServerHandler(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend(), new UnaryServerMethodFaker().InternalServerError()));
-            Assert.Equal(StatusCode.Internal, result.StatusCode);
-            Assert.Equal(StatusCode.Internal, result.Status.StatusCode);
-            Assert.Equal("An internal server error occured", result.Status.Detail);
+            var status = result.GetRpcStatus();
+            Assert.Equal((int)StatusCode.Internal, status!.Code);
+            Assert.Equal("An internal server error occured", status.Message);
         }
 
         [Fact(DisplayName = "[UNIT][EHI-002]: Handle Not Found")]
@@ -43,9 +43,9 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Interceptors
             // Act
             // Assert
             var result = await Assert.ThrowsAsync<RpcException>(async () => await sut.UnaryServerHandler(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend(), new UnaryServerMethodFaker().NotFound(exception)));
-            Assert.Equal(StatusCode.NotFound, result.StatusCode);
-            Assert.Equal(StatusCode.NotFound, result.Status.StatusCode);
-            Assert.Equal(exception.Message, result.Status.Detail);
+            var status = result.GetRpcStatus();
+            Assert.Equal((int)StatusCode.NotFound, status!.Code);
+            Assert.Equal(exception.Message, status.Message);
         }
 
         [Fact(DisplayName = "[UNIT][EHI-003]: Handle Conflict")]
@@ -59,8 +59,8 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Interceptors
             // Act
             // Assert
             var result = await Assert.ThrowsAsync<RpcException>(async () => await sut.UnaryServerHandler(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend(), new UnaryServerMethodFaker().Conflict(exception)));
-            Assert.Equal(StatusCode.AlreadyExists, result.StatusCode);
-            Assert.Equal(StatusCode.AlreadyExists, result.Status.StatusCode);
+            var status = result.GetRpcStatus();
+            Assert.Equal((int)StatusCode.AlreadyExists, status!.Code);
             Assert.Equal(exception.Message, result.Status.Detail);
         }
 
@@ -75,30 +75,13 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Interceptors
             // Act
             // Assert
             var result = await Assert.ThrowsAsync<RpcException>(async () => await sut.UnaryServerHandler(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend(), new UnaryServerMethodFaker().BusinessRule(exception)));
-            Assert.Equal(StatusCode.InvalidArgument, result.StatusCode);
-            Assert.Equal(StatusCode.InvalidArgument, result.Status.StatusCode);
-            Assert.Equal(exception.Message, result.Status.Detail);
-            Assert.Equal(exception.ErrorCode, result.Trailers.GetErrorCode());
+            var status = result.GetRpcStatus();
+            Assert.Equal((int)StatusCode.FailedPrecondition, status!.Code);
+            Assert.Equal(exception.Message, status.Message);
+            Assert.Single(status.Details, exception.ToDetails());
         }
 
-        [Fact(DisplayName = "[UNIT][EHI-005]: Handle Business Rule Error without Error Code")]
-        [ErrorHandlingFeature]
-        public async Task ErrorHandlingIntercepter_UnaryServerHandle_HandleBusinessRuleErrorWithoutErrorCode()
-        {
-            // Arrange
-            var sut = CreateSUT();
-            var exception = new AutoFaker<BusinessRuleException>().Ignore(e => e.ErrorCode).Generate();
-
-            // Act
-            // Assert
-            var result = await Assert.ThrowsAsync<RpcException>(async () => await sut.UnaryServerHandler(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend(), new UnaryServerMethodFaker().BusinessRule(exception)));
-            Assert.Equal(StatusCode.InvalidArgument, result.StatusCode);
-            Assert.Equal(StatusCode.InvalidArgument, result.Status.StatusCode);
-            Assert.Equal(exception.Message, result.Status.Detail);
-            Assert.Equal(nameof(StatusCode.InvalidArgument), result.Trailers.GetErrorCode());
-        }
-
-        [Fact(DisplayName = "[UNIT][EHI-006]: Handle Validation Error")]
+        [Fact(DisplayName = "[UNIT][EHI-005]: Handle Validation Error")]
         [ErrorHandlingFeature]
         public async Task ErrorHandlingIntercepter_UnaryServerHandle_HandleValidationError()
         {
@@ -111,13 +94,23 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Interceptors
             var result = await Assert.ThrowsAsync<RpcException>(async () => await sut.UnaryServerHandler(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend(), new UnaryServerMethodFaker().Validation(exception)));
             var status = result.GetRpcStatus()!;
             Assert.Equal((int)StatusCode.InvalidArgument, status.Code);
-            Assert.Equal("Validation Failure", status.Message);
+            Assert.Equal("VALIDATION_FAILURE", status.Message);
             Assert.Single(status.Details, exception.Errors.ToDetails());
         }
     }
 
     file static class ErrorHandlingInterceptorExtensions
     {
+        public static Any ToDetails(this BusinessRuleException exception)
+        {
+            var result = new ErrorInfo
+            {
+                Reason = exception.ErrorCode
+            };
+
+            return Any.Pack(result);
+        }
+
         public static Any ToDetails(this IEnumerable<ValidationFailure> failures)
         {
             var result = new BadRequest();

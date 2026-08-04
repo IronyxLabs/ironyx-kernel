@@ -21,18 +21,15 @@ namespace Ironyx.Kernel.Interceptors
             }
             catch (BusinessRuleException exception)
             {
-                throw new NotImplementedException();
-                //throw RpcExceptions.BusinessRule(exception);
+                throw exception.ToRpcException();
             }
             catch (NotFoundException exception)
             {
-                throw new NotImplementedException();
-                //throw RpcExceptions.NotFound(exception);
+                throw exception.ToRpcException();
             }
             catch (ConflictException exception)
             {
-                throw new NotImplementedException();
-                //throw RpcExceptions.Conflict(exception);
+                throw exception.ToRpcException();
             }
             catch (ValidationException exception)
             {
@@ -40,14 +37,28 @@ namespace Ironyx.Kernel.Interceptors
             }
             catch (Exception exception)
             {
-                throw new NotImplementedException();
-                //throw RpcExceptions.InternalServerError(exception);
+                throw exception.ToRpcException();
             }
         }
     }
 
     file static class ErrorHandlingInterceptorExtensions
     {
+        public static RpcException ToRpcException(this BusinessRuleException exception)
+        {
+            var status = new Google.Rpc.Status
+            {
+                Code = (int)Code.FailedPrecondition,
+                Message = exception.Message
+            };
+            status.Details.Add(Any.Pack(new ErrorInfo
+            {
+                Reason = exception.ErrorCode,
+            }));
+
+            return status.ToRpcException();
+        }
+
         public static RpcException ToRpcException(this ValidationException exception)
         {
             var error = new BadRequest();
@@ -56,9 +67,42 @@ namespace Ironyx.Kernel.Interceptors
             var status = new Google.Rpc.Status
             {
                 Code = (int)Code.InvalidArgument,
-                Message = "Validation Failure"
+                Message = "VALIDATION_FAILURE"
             };
             status.Details.Add(Any.Pack(error));
+
+            return status.ToRpcException();
+        }
+
+        public static RpcException ToRpcException(this ConflictException exception)
+        {
+            var status = new Google.Rpc.Status
+            {
+                Code = (int)Code.AlreadyExists,
+                Message = exception.Message
+            };
+
+            return status.ToRpcException();
+        }
+
+        public static RpcException ToRpcException(this NotFoundException exception)
+        {
+            var status = new Google.Rpc.Status
+            {
+                Code = (int)Code.NotFound,
+                Message = exception.Message
+            };
+
+            return status.ToRpcException();
+        }
+
+        public static RpcException ToRpcException(this Exception exception)
+        {
+            var status = new Google.Rpc.Status
+            {
+                Code = (int)Code.Internal,
+                Message = "An internal server error occured"
+            };
 
             return status.ToRpcException();
         }
