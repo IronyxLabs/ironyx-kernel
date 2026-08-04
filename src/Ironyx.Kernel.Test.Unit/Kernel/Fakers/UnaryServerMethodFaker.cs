@@ -1,4 +1,5 @@
 ﻿using AutoBogus;
+using FluentValidation;
 using Grpc.Core;
 
 namespace Ironyx.Kernel.Test.Unit.Kernel.Fakers
@@ -15,5 +16,6 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Fakers
         public UnaryServerMethod<Envelop, Reply> NotFound(NotFoundException exception) => Throw(exception);
         public UnaryServerMethod<Envelop, Reply> Conflict(ConflictException exception) => Throw(exception);
         public UnaryServerMethod<Envelop, Reply> BusinessRule(BusinessRuleException exception) => Throw(exception);
+        public UnaryServerMethod<Envelop, Reply> Validation(ValidationException exception) => Throw(exception);
     }
 }

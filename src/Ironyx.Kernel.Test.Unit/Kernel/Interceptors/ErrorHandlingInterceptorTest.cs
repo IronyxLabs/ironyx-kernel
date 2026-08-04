@@ -1,4 +1,8 @@
 ﻿using AutoBogus;
+using FluentValidation;
+using FluentValidation.Results;
+using Google.Protobuf.WellKnownTypes;
+using Google.Rpc;
 using Grpc.Core;
 using Ironyx.Kernel.Execution.Constants;
 using Ironyx.Kernel.Interceptors;
@@ -93,10 +97,44 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Interceptors
             Assert.Equal(exception.Message, result.Status.Detail);
             Assert.Equal(nameof(StatusCode.InvalidArgument), result.Trailers.GetErrorCode());
         }
+
+        [Fact(DisplayName = "[UNIT][EHI-006]: Handle Validation Error")]
+        [ErrorHandlingFeature]
+        public async Task ErrorHandlingIntercepter_UnaryServerHandle_HandleValidationError()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var exception = new AutoFaker<ValidationException>().Generate();
+
+            // Act
+            // Assert
+            var result = await Assert.ThrowsAsync<RpcException>(async () => await sut.UnaryServerHandler(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend(), new UnaryServerMethodFaker().Validation(exception)));
+            var status = result.GetRpcStatus()!;
+            Assert.Equal((int)StatusCode.InvalidArgument, status.Code);
+            Assert.Equal("Validation Failure", status.Message);
+            Assert.Single(status.Details, exception.Errors.ToDetails());
+        }
     }
 
     file static class ErrorHandlingInterceptorExtensions
     {
+        public static Any ToDetails(this IEnumerable<ValidationFailure> failures)
+        {
+            var result = new BadRequest();
+            foreach (var failure in failures)
+            {
+                result.FieldViolations.Add(new BadRequest.Types.FieldViolation { Field = failure.PropertyName, Description = failure.ErrorCode });
+            }
+
+            return Any.Pack(result);
+        }
+
+        public static BadRequest? Unpack(this Any field)
+        {
+            if (!field.Is(BadRequest.Descriptor)) return null;
+            return field.Unpack<BadRequest>();
+        }
+
         public static string? GetErrorCode(this Metadata metadata)
         {
             return metadata.FirstOrDefault(m => m.Key == GrpcConstants.ErrorCode)?.Value;
