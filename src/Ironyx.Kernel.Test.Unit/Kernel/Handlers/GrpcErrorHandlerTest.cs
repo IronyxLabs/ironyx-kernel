@@ -11,7 +11,7 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Handlers
     public class GrpcErrorHandlerTest
     {
 
-        private ILogger<GrpcErrorHandler> _logger;
+        private readonly ILogger<GrpcErrorHandler> _logger;
 
         public GrpcErrorHandlerTest(ITestOutputHelper outputHelper)
         {
@@ -37,7 +37,7 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Handlers
             // Assert
             var result = Assert.Throws<InvalidOperationException>(() => sut.Handle(status.ToRpcException()));
             Assert.Equal("An internal server error occured", result.Message);
-            GrpcErrorHandlerAssert.ErrorInfo(status.Details[0].Unpack<ErrorInfo>(), result.Data);
+            GrpcErrorHandlerAssert.ErrorInfo(status.GetDetail<ErrorInfo>(), result.Data, "INTERNAL_SERVER_ERROR");
         }
 
         [Fact(DisplayName = "[UNIT][GEH-002]: Handle Not Found")]
@@ -52,16 +52,26 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Handlers
             // Assert
             var result = Assert.Throws<NotFoundException>(() => sut.Handle(status.ToRpcException()));
             Assert.Equal(status.Message, result.Message);
+            GrpcErrorHandlerAssert.ErrorInfo(status.GetDetail<ErrorInfo>(), result.Data, "RESOURCE_NOT_FOUND");
+            GrpcErrorHandlerAssert.ResourceInfo(status.GetDetail<ResourceInfo>(), result.Data);
         }
     }
 
     file static class GrpcErrorHandlerAssert
     {
-        public static void ErrorInfo(ErrorInfo expected, IDictionary actual)
+        public static void ErrorInfo(ErrorInfo expected, IDictionary actual, string reason)
         {
             Assert.Equal(expected.Domain, actual["Ironyx.ErrorInfo.Domain"]);
-            Assert.Equal("INTERNAL_SERVER_ERROR", actual["Ironyx.ErrorInfo.Reason"]);
+            Assert.Equal(reason, actual["Ironyx.ErrorInfo.Reason"]);
             Assert.Equal(expected.Metadata["Ironyx.ErrorInfo.CorrelationId"], actual["Ironyx.ErrorInfo.CorrelationId"]);
+        }
+
+        public static void ResourceInfo(ResourceInfo expected, IDictionary actual)
+        {
+            Assert.Equal(expected.Owner, actual["Ironyx.ResourceInfo.Owner"]);
+            Assert.Equal(expected.ResourceType, actual["Ironyx.ResourceInfo.ResourceType"]);
+            Assert.Equal(expected.ResourceName, actual["Ironyx.ResourceInfo.ResourceName"]);
+            Assert.Equal(expected.Description, actual["Ironyx.ResourceInfo.Description"]);
         }
     }
 }

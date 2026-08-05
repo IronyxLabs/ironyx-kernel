@@ -21,7 +21,7 @@ namespace Ironyx.Kernel.Handlers
             switch (status!.Code)
             {
                 case (int)StatusCode.NotFound:
-                    throw new NotFoundException(status.Message, exception);
+                    throw status.AsNotFound();
                 case (int)StatusCode.Internal:
                     throw status.AsInternalServerError();
                 default:
@@ -32,15 +32,32 @@ namespace Ironyx.Kernel.Handlers
 
     file static class GrpcErrorHandlerExtensions
     {
-        public static InvalidOperationException AsInternalServerError(this Status status)
+        public static NotFoundException AsNotFound(this Status status)
         {
-            var result = new InvalidOperationException("An internal server error occured");
-            result.ExtractErrorInfo(status.GetDetail<ErrorInfo>());
+            var result = new NotFoundException(status.Message);
+            result.Enrich(status.GetDetail<ErrorInfo>());
+            result.Enrich(status.GetDetail<ResourceInfo>());
 
             return result;
         }
 
-        public static void ExtractErrorInfo(this Exception exception, ErrorInfo errorInfo)
+        public static InvalidOperationException AsInternalServerError(this Status status)
+        {
+            var result = new InvalidOperationException("An internal server error occured");
+            result.Enrich(status.GetDetail<ErrorInfo>());
+
+            return result;
+        }
+
+        public static void Enrich(this Exception exception, ResourceInfo resourceInfo)
+        {
+            exception.Data.Add(ResourceInfoConstants.Owner, resourceInfo.Owner);
+            exception.Data.Add(ResourceInfoConstants.ResourceName, resourceInfo.ResourceName);
+            exception.Data.Add(ResourceInfoConstants.ResourceType, resourceInfo.ResourceType);
+            exception.Data.Add(ResourceInfoConstants.Description, resourceInfo.Description);
+        }
+
+        public static void Enrich(this Exception exception, ErrorInfo errorInfo)
         {
             exception.Data.Add(ErrorInfoConstants.Domain, errorInfo.Domain);
             exception.Data.Add(ErrorInfoConstants.Reason, errorInfo.Reason);
