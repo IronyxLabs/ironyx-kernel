@@ -26,9 +26,13 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Fakers
             return this;
         }
 
-        private void ErrorInfo(Faker faker, Status status, string reason)
+        public StatusFaker Conflict()
         {
+            RuleFor(s => s.Code, (int)StatusCode.AlreadyExists);
+            FinishWith((f, s) => s.AddErrorInfo("CONFLICT", f)
+                                    .AddResourceInfo());
 
+            return this;
         }
     }
 

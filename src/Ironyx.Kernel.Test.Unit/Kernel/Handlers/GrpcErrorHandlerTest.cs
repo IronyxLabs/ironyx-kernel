@@ -55,6 +55,22 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Handlers
             GrpcErrorHandlerAssert.ErrorInfo(status.GetDetail<ErrorInfo>(), result.Data, "RESOURCE_NOT_FOUND");
             GrpcErrorHandlerAssert.ResourceInfo(status.GetDetail<ResourceInfo>(), result.Data);
         }
+
+        [Fact(DisplayName = "[UNIT][GEH-003]: Handle Conflict")]
+        [ErrorHandlingFeature]
+        public void GrpcErrorHandler_Handle_HandleConflict()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var status = new StatusFaker().Conflict().Generate();
+
+            // Act
+            // Assert
+            var result = Assert.Throws<ConflictException>(() => sut.Handle(status.ToRpcException()));
+            Assert.Equal(status.Message, result.Message);
+            GrpcErrorHandlerAssert.ErrorInfo(status.GetDetail<ErrorInfo>(), result.Data, "CONFLICT");
+            GrpcErrorHandlerAssert.ResourceInfo(status.GetDetail<ResourceInfo>(), result.Data);
+        }
     }
 
     file static class GrpcErrorHandlerAssert

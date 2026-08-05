@@ -20,6 +20,8 @@ namespace Ironyx.Kernel.Handlers
             var status = exception.GetRpcStatus();
             switch (status!.Code)
             {
+                case (int)StatusCode.AlreadyExists:
+                    throw status.AsConflict();
                 case (int)StatusCode.NotFound:
                     throw status.AsNotFound();
                 case (int)StatusCode.Internal:
@@ -32,6 +34,15 @@ namespace Ironyx.Kernel.Handlers
 
     file static class GrpcErrorHandlerExtensions
     {
+        public static ConflictException AsConflict(this Status status)
+        {
+            var result = new ConflictException(status.Message);
+            result.Enrich(status.GetDetail<ErrorInfo>());
+            result.Enrich(status.GetDetail<ResourceInfo>());
+
+            return result;
+        }
+
         public static NotFoundException AsNotFound(this Status status)
         {
             var result = new NotFoundException(status.Message);
