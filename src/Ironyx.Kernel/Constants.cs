@@ -1,5 +1,11 @@
 ﻿namespace Ironyx.Kernel
 {
+    public static class BusinessViolationConstants
+    {
+        public const string Type = "Ironyx.BusinessViolation.Type";
+        public const string Subject = "Ironyx.BusinessViolation.Subject";
+        public const string Description = "Ironyx.BusinessViolation.Description";
+    }
 
     public static class ErrorInfoConstants
     {

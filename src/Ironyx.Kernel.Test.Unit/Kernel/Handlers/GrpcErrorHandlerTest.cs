@@ -71,10 +71,34 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Handlers
             GrpcErrorHandlerAssert.ErrorInfo(status.GetDetail<ErrorInfo>(), result.Data, "CONFLICT");
             GrpcErrorHandlerAssert.ResourceInfo(status.GetDetail<ResourceInfo>(), result.Data);
         }
+
+        [Fact(DisplayName = "[UNIT][GEH-004]: Handle Business Rule Error")]
+        [ErrorHandlingFeature]
+        public void GrpcErrorHandler_Handle_HandleBusinessRuleError()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var status = new StatusFaker().BusinessRule().Generate();
+
+            // Act
+            // Assert
+            var result = Assert.Throws<BusinessRuleException>(() => sut.Handle(status.ToRpcException()));
+            Assert.Equal(status.Message, result.Message);
+            GrpcErrorHandlerAssert.ErrorInfo(status.GetDetail<ErrorInfo>(), result.Data, "BUSINESS_RULE_VIOLATION");
+            GrpcErrorHandlerAssert.ResourceInfo(status.GetDetail<ResourceInfo>(), result.Data);
+            GrpcErrorHandlerAssert.PreconditionFailure(status.GetDetail<Google.Rpc.PreconditionFailure>(), result.Data);
+        }
     }
 
     file static class GrpcErrorHandlerAssert
     {
+        public static void PreconditionFailure(PreconditionFailure expected, IDictionary actual)
+        {
+            Assert.Equal(expected.Violations[0].Type, actual["Ironyx.BusinessViolation.Type"]);
+            Assert.Equal(expected.Violations[0].Subject, actual["Ironyx.BusinessViolation.Subject"]);
+            Assert.Equal(expected.Violations[0].Description, actual["Ironyx.BusinessViolation.Description"]);
+        }
+
         public static void ErrorInfo(ErrorInfo expected, IDictionary actual, string reason)
         {
             Assert.Equal(expected.Domain, actual["Ironyx.ErrorInfo.Domain"]);

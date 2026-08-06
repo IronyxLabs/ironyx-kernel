@@ -20,6 +20,8 @@ namespace Ironyx.Kernel.Handlers
             var status = exception.GetRpcStatus();
             switch (status!.Code)
             {
+                case (int)StatusCode.FailedPrecondition:
+                    throw status.AsBusinessRuleException();
                 case (int)StatusCode.AlreadyExists:
                     throw status.AsConflict();
                 case (int)StatusCode.NotFound:
@@ -34,6 +36,16 @@ namespace Ironyx.Kernel.Handlers
 
     file static class GrpcErrorHandlerExtensions
     {
+        public static BusinessRuleException AsBusinessRuleException(this Status status)
+        {
+            var result = new BusinessRuleException(status.Message);
+            result.Enrich(status.GetDetail<ErrorInfo>());
+            result.Enrich(status.GetDetail<ResourceInfo>());
+            result.Enrich(status.GetDetail<PreconditionFailure>());
+
+            return result;
+        }
+
         public static ConflictException AsConflict(this Status status)
         {
             var result = new ConflictException(status.Message);
@@ -58,6 +70,13 @@ namespace Ironyx.Kernel.Handlers
             result.Enrich(status.GetDetail<ErrorInfo>());
 
             return result;
+        }
+
+        public static void Enrich(this Exception exception, PreconditionFailure failure)
+        {
+            exception.Data.Add(BusinessViolationConstants.Type, failure.Violations[0].Type);
+            exception.Data.Add(BusinessViolationConstants.Subject, failure.Violations[0].Subject);
+            exception.Data.Add(BusinessViolationConstants.Description, failure.Violations[0].Description);
         }
 
         public static void Enrich(this Exception exception, ResourceInfo resourceInfo)
