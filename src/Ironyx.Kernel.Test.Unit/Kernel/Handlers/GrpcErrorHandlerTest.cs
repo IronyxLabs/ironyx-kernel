@@ -102,7 +102,7 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Handlers
             // Assert
             var result = Assert.Throws<ValidationException>(() => sut.Handle(status.ToRpcException()));
             Assert.Equal(status.Message, result.Message);
-            GrpcErrorHandlerAssert.ErrorInfo(status.GetDetail<ErrorInfo>(), result.Data, "BUSINESS_RULE_VIOLATION");
+            GrpcErrorHandlerAssert.ErrorInfo(status.GetDetail<ErrorInfo>(), result.Data, "VALIDATION_FAILURE");
             GrpcErrorHandlerAssert.ValidationFailure(status.GetDetail<Google.Rpc.BadRequest>(), result);
         }
     }

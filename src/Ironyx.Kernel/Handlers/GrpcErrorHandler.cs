@@ -1,4 +1,6 @@
-﻿using Google.Rpc;
+﻿using FluentValidation;
+using FluentValidation.Results;
+using Google.Rpc;
 using Grpc.Core;
 using Microsoft.Extensions.Logging;
 using static Ironyx.Kernel.Monitoring.LogContext;
@@ -20,6 +22,8 @@ namespace Ironyx.Kernel.Handlers
             var status = exception.GetRpcStatus();
             switch (status!.Code)
             {
+                case (int)StatusCode.InvalidArgument:
+                    throw status.AsInvalidArgument();
                 case (int)StatusCode.FailedPrecondition:
                     throw status.AsBusinessRuleException();
                 case (int)StatusCode.AlreadyExists:
@@ -36,6 +40,14 @@ namespace Ironyx.Kernel.Handlers
 
     file static class GrpcErrorHandlerExtensions
     {
+        public static ValidationException AsInvalidArgument(this Status status)
+        {
+            var result = new ValidationException(status.Message, status.GetDetail<BadRequest>().FieldViolations.Select(fv => new ValidationFailure(fv.Field, fv.Description)));
+            result.Enrich(status.GetDetail<ErrorInfo>());
+
+            return result;
+        }
+
         public static BusinessRuleException AsBusinessRuleException(this Status status)
         {
             var result = new BusinessRuleException(status.Message);
