@@ -9,6 +9,15 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Fakers
 {
     public class StatusFaker : AutoFaker<Status>
     {
+        public StatusFaker ValidationFailure()
+        {
+            RuleFor(s => s.Code, (int)StatusCode.InvalidArgument);
+            FinishWith((f, s) => s.AddErrorInfo("VALIDATION_FAILURE", f)
+                                    .AddValidationFailure());
+
+            return this;
+        }
+
         public StatusFaker BusinessRule()
         {
             RuleFor(s => s.Code, (int)StatusCode.FailedPrecondition);
@@ -48,6 +57,13 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Fakers
 
     file static class StatusFakerExtensions
     {
+        public static Status AddValidationFailure(this Status status)
+        {
+            status.Details.Add(Any.Pack(new AutoFaker<BadRequest>().FinishWith((f, pf) => pf.FieldViolations.Add(new AutoFaker<BadRequest.Types.FieldViolation>().Generate())).Generate()));
+
+            return status;
+        }
+
         public static Status AddPreconditionFail(this Status status)
         {
             status.Details.Add(Any.Pack(new AutoFaker<PreconditionFailure>().FinishWith((f, pf) => pf.Violations.Add(new AutoFaker<PreconditionFailure.Types.Violation>().Generate())).Generate()));

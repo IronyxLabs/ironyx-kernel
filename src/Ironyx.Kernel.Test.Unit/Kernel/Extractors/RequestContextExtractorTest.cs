@@ -29,7 +29,7 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Extractors
             return new RequestContextExtractor(_requestContext, _generatorMock.Object, _logger);
         }
 
-        [Fact(DisplayName = "[UNIT][RCE-001] - Generate Request Id")]
+        [Fact(DisplayName = "[UNIT][RCE-001]: Generate Request Id")]
         [GrpcEndpointFeature]
         public async Task RequestContextExtractor_ExtractAsync_GenerateRequestId()
         {
@@ -46,7 +46,7 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Extractors
             Assert.Equal(id, _requestContext.RequestId);
         }
 
-        [Fact(DisplayName = "[UNIT][RCE-002] - Get Correlation Id")]
+        [Fact(DisplayName = "[UNIT][RCE-002]: Get Correlation Id")]
         [GrpcEndpointFeature]
         public async Task RequestContextExtractor_ExtractAsync_GetCorrelationId()
         {
@@ -61,7 +61,7 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Extractors
             Assert.Equal(id, _requestContext.CorrelationId);
         }
 
-        [Fact(DisplayName = "[UNIT][RCE-003] - Generate Correlation Id")]
+        [Fact(DisplayName = "[UNIT][RCE-003]: Generate Correlation Id")]
         [GrpcEndpointFeature]
         public async Task RequestContextExtractor_ExtractAsync_GenerateCorrelationId()
         {
@@ -78,7 +78,7 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Extractors
             Assert.Equal(id, _requestContext.CorrelationId);
         }
 
-        [Fact(DisplayName = "[UNIT][RCE-004] - Get Causation Id")]
+        [Fact(DisplayName = "[UNIT][RCE-004]: Get Causation Id")]
         [GrpcEndpointFeature]
         public async Task RequestContextExtractor_ExtractAsync_GetCausationId()
         {
@@ -93,7 +93,7 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Extractors
             Assert.Equal(id, _requestContext.CausationId);
         }
 
-        [Fact(DisplayName = "[UNIT][RCE-005] - Causation Id not Found")]
+        [Fact(DisplayName = "[UNIT][RCE-005]: Causation Id not Found")]
         [GrpcEndpointFeature]
         public async Task RequestContextExtractor_ExtractAsync_CausationIdNotFound()
         {

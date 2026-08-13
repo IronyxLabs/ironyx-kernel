@@ -1,4 +1,5 @@
-﻿using Google.Rpc;
+﻿using FluentValidation;
+using Google.Rpc;
 using Grpc.Core;
 using Ironyx.Kernel.Handlers;
 using Ironyx.Kernel.Test.Unit.Kernel.Fakers;
@@ -88,10 +89,32 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Handlers
             GrpcErrorHandlerAssert.ResourceInfo(status.GetDetail<ResourceInfo>(), result.Data);
             GrpcErrorHandlerAssert.PreconditionFailure(status.GetDetail<Google.Rpc.PreconditionFailure>(), result.Data);
         }
+
+        [Fact(DisplayName = "[UNIT][GEH-005]: Handle Validation Failure")]
+        [ErrorHandlingFeature]
+        public void GrpcErrorHandler_Handle_HandleValidationFailure()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var status = new StatusFaker().ValidationFailure().Generate();
+
+            // Act
+            // Assert
+            var result = Assert.Throws<ValidationException>(() => sut.Handle(status.ToRpcException()));
+            Assert.Equal(status.Message, result.Message);
+            GrpcErrorHandlerAssert.ErrorInfo(status.GetDetail<ErrorInfo>(), result.Data, "BUSINESS_RULE_VIOLATION");
+            GrpcErrorHandlerAssert.ValidationFailure(status.GetDetail<Google.Rpc.BadRequest>(), result);
+        }
     }
 
     file static class GrpcErrorHandlerAssert
     {
+        public static void ValidationFailure(BadRequest expected, ValidationException exception)
+        {
+            Assert.Equal(expected.FieldViolations[0].Field, exception.Errors.ElementAt(0).PropertyName);
+            Assert.Equal(expected.FieldViolations[0].Description, exception.Errors.ElementAt(0).ErrorMessage);
+        }
+
         public static void PreconditionFailure(PreconditionFailure expected, IDictionary actual)
         {
             Assert.Equal(expected.Violations[0].Type, actual["Ironyx.BusinessViolation.Type"]);
