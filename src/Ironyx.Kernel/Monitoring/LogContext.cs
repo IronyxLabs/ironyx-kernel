@@ -89,6 +89,9 @@ namespace Ironyx.Kernel.Monitoring
 
             [LoggerMessage(Level = LogLevel.Trace, Message = "Metadata: {@Metadata}")]
             public partial void LogMetadata(Metadata metadata);
+
+            [LoggerMessage(Level = LogLevel.Error, Message = "Exception during sending request")]
+            public partial void LogError(Exception exception);
         }
 
         public partial class GrpcErrorHandlerLogContext(ILogger<GrpcErrorHandler> logger)

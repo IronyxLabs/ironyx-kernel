@@ -1,7 +1,7 @@
-﻿using Google.Rpc;
-using Grpc.Core;
+﻿using Grpc.Core;
 using Ironyx.Kernel.Enrichers;
 using Ironyx.Kernel.Execution.Senders;
+using Ironyx.Kernel.Handlers;
 using Ironyx.Kernel.Monitoring;
 using Microsoft.Extensions.Logging;
 using System.Reflection;
@@ -13,12 +13,14 @@ namespace Ironyx.Kernel.Senders
     {
         private readonly IGenericClient _client;
         private readonly IEnricher _enricher;
+        private readonly IErrorHandler<RpcException> _errorHandler;
         private readonly LogContext.GrpcRequestSenderLogContext _logger;
 
-        public GrpcRequestSender(IGenericClient client, IEnricher enricher, ILogger<GrpcRequestSender> logger)
+        public GrpcRequestSender(IGenericClient client, IEnricher enricher, IErrorHandler<RpcException> errorHandler, ILogger<GrpcRequestSender> logger)
         {
             _client = client;
             _enricher = enricher;
+            _errorHandler = errorHandler;
             _logger = new LogContext.GrpcRequestSenderLogContext(logger);
         }
 
@@ -44,23 +46,13 @@ namespace Ironyx.Kernel.Senders
             {
                 var reply = await _client.GetAsync(envelop, metadata, cancellationToken);
                 return await reply.Data.DeserializeAsync<TResult>(cancellationToken);
+
             }
             catch (RpcException exception)
             {
-                var status = exception.GetRpcStatus();
-                switch (status!.Code)
-                {
-                    case (int)StatusCode.FailedPrecondition:
-                        throw new BusinessRuleException(status.Message, exception) { ErrorCode = status.Details[0].Unpack<ErrorInfo>().Reason };
-                    case (int)StatusCode.AlreadyExists:
-                        throw new ConflictException(status.Message, exception);
-                    case (int)StatusCode.NotFound:
-                        throw new NotFoundException(status.Message, exception);
-                    case (int)StatusCode.Internal:
-                        throw new InvalidOperationException(status.Message, exception);
-                    default:
-                        throw;
-                }
+                _logger.LogError(exception);
+                _errorHandler.Handle(exception);
+                return default;
             }
         }
 
@@ -82,7 +74,15 @@ namespace Ironyx.Kernel.Senders
             _logger.LogEnvelop(envelop);
             _logger.LogMetadata(metadata);
 
-            await _client.SendAsync(envelop, metadata, cancellationToken);
+            try
+            {
+                await _client.SendAsync(envelop, metadata, cancellationToken);
+            }
+            catch (RpcException exception)
+            {
+                _logger.LogError(exception);
+                _errorHandler.Handle(exception);
+            }
         }
     }
 

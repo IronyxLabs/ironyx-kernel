@@ -117,9 +117,27 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Senders
             _enricherMock.Verify(e => e.EnrichAsync(It.IsAny<Metadata>(), It.IsAny<CancellationToken>()), Times.Once());
         }
 
-        [Fact(DisplayName = "[UNIT][GRS-006]: Handle Error")]
+        [Fact(DisplayName = "[UNIT][GRS-006]: Handle Error for Commands")]
         [RequestSendingFeature]
-        public async Task GrpcRequestSender_SendAsync_HandleError()
+        public async Task GrpcRequestSender_SendAsync_HandleErrorForCommands()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var exception = new RpcExceptionFaker().Generate();
+
+            _clientMock.Setup(c => c.SendAsync(It.IsAny<Envelop>(), It.IsAny<Metadata>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(exception);
+
+            // Act
+            await sut.SendAsync(new AutoFaker<TestCommand>().Generate(), default);
+
+            // Assert
+            _errorHandlerMock.Verify(e => e.Handle(exception), Times.Once());
+        }
+
+        [Fact(DisplayName = "[UNIT][GRS-008]: Handle Error for Queries")]
+        [RequestSendingFeature]
+        public async Task GrpcRequestSender_SendAsync_HandleErrorForQueries()
         {
             // Arrange
             var sut = CreateSUT();
