@@ -22,9 +22,12 @@ namespace Ironyx.Kernel.Monitoring
 
             [LoggerMessage(Level = LogLevel.Debug, Message = "Receiving query")]
             public partial void ReceivingQuery();
+
             [LoggerMessage(Level = LogLevel.Debug, Message = "Query has been executed")]
             public partial void QueryExecuted();
 
+            [LoggerMessage(Level = LogLevel.Error, Message = "Exception occured during handling request")]
+            public partial void Error(Exception exception);
 
             public IDisposable SetLogContext(Ulid correlationId, Ulid? causationId, Ulid requestId)
             {

@@ -1,9 +1,13 @@
-﻿using Grpc.Core;
+﻿using Google.Protobuf.WellKnownTypes;
+using Google.Rpc;
+using Grpc.Core;
 using Ironyx.Kernel.Execution.Dispatchers;
 using Ironyx.Kernel.Extractors;
 using Ironyx.Kernel.Monitoring;
+using Ironyx.Kernel.Options;
 using Ironyx.Kernel.Serializers;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
@@ -17,15 +21,17 @@ namespace Ironyx.Kernel.Receivers
         private readonly IRequestContextAccessor _requestContext;
         private readonly ICommandDispatcher _commandDispatcher;
         private readonly IQueryDispatcher _queryDispatcher;
+        private readonly IOptionsMonitor<ServiceOptions> _serviceOptions;
         private readonly LogContext.GrpEndpointLogContext _logger;
 
-        public GrpcEndpoint(IRequestDeserializer deserilaizer, IExtractor extractor, IRequestContextAccessor requestContext, ICommandDispatcher commandDispatcher, IQueryDispatcher queryDispatcher, ILogger<GrpcEndpoint> logger)
+        public GrpcEndpoint(IRequestDeserializer deserilaizer, IExtractor extractor, IRequestContextAccessor requestContext, ICommandDispatcher commandDispatcher, IQueryDispatcher queryDispatcher, IOptionsMonitor<ServiceOptions> serviceOptions, ILogger<GrpcEndpoint> logger)
         {
             _deserializer = deserilaizer;
             _extractor = extractor;
             _requestContext = requestContext;
             _commandDispatcher = commandDispatcher;
             _queryDispatcher = queryDispatcher;
+            _serviceOptions = serviceOptions;
             _logger = new LogContext.GrpEndpointLogContext(logger);
         }
 
@@ -35,7 +41,17 @@ namespace Ironyx.Kernel.Receivers
             await _extractor.ExtractAsync(context.RequestHeaders, context.CancellationToken);
             using var scope = _logger.SetLogContext(_requestContext.CorrelationId, _requestContext.CausationId, _requestContext.RequestId);
 
-            await _commandDispatcher.DispatchAsync(await _deserializer.DeserializeAsync(envelop, context.CancellationToken), context.CancellationToken);
+            try
+            {
+                await _commandDispatcher.DispatchAsync(await _deserializer.DeserializeAsync(envelop, context.CancellationToken), context.CancellationToken);
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception);
+                throw exception.InternalError()
+                                    .ErrorInfo(_serviceOptions.CurrentValue.Name, _requestContext.CorrelationId)
+                                    .ToRpcException();
+            }
 
             _logger.CommandAccepted();
             return new Reply();
@@ -56,6 +72,32 @@ namespace Ironyx.Kernel.Receivers
             {
                 Data = JsonSerializer.Serialize(result)
             };
+        }
+    }
+
+    file static class GrpcEndpointExtensions
+    {
+        public static Google.Rpc.Status InternalError(this Exception exception)
+        {
+            return new Google.Rpc.Status()
+            {
+                Code = (int)StatusCode.Internal,
+                Message = "An internal server error occured"
+            };
+        }
+
+        public static Google.Rpc.Status ErrorInfo(this Google.Rpc.Status status, string domain, Ulid correlationId)
+        {
+            var errorInfo = new ErrorInfo()
+            {
+                Domain = domain,
+                Reason = "INTERNAL_SERVER_ERROR"
+            };
+            errorInfo.Metadata.Add(ErrorInfoConstants.CorrelationId, correlationId.ToString());
+
+            status.Details.Add(Any.Pack(errorInfo));
+
+            return status;
         }
     }
 }

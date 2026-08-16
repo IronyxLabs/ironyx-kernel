@@ -1,11 +1,16 @@
 ﻿using AutoBogus;
+using Google.Rpc;
+using Grpc.Core;
 using Ironyx.Kernel.Execution.Dispatchers;
 using Ironyx.Kernel.Extractors;
+using Ironyx.Kernel.Options;
 using Ironyx.Kernel.Receivers;
 using Ironyx.Kernel.Serializers;
 using Ironyx.Kernel.Test.Unit.Kernel.Fakers;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
+using Moq.Language.Flow;
 using System.Text.Json;
 using Xunit.Abstractions;
 
@@ -21,6 +26,7 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
         private Mock<IRequestContextAccessor> _requestContextMock = null!;
         private Mock<ICommandDispatcher> _commandDispatcherMock = null!;
         private Mock<IQueryDispatcher> _queryDispatcherMock = null!;
+        private Mock<IOptionsMonitor<ServiceOptions>> _optionsMock = null!;
 
         public GrpcEndpointTest(ITestOutputHelper outputHelper)
         {
@@ -36,8 +42,9 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
             _requestContextMock = new Mock<IRequestContextAccessor>();
             _commandDispatcherMock = new Mock<ICommandDispatcher>();
             _queryDispatcherMock = new Mock<IQueryDispatcher>();
+            _optionsMock = new Mock<IOptionsMonitor<ServiceOptions>>();
 
-            return new GrpcEndpoint(_deserializerMock.Object, _extractorMock.Object, _requestContextMock.Object, _commandDispatcherMock.Object, _queryDispatcherMock.Object, _logger);
+            return new GrpcEndpoint(_deserializerMock.Object, _extractorMock.Object, _requestContextMock.Object, _commandDispatcherMock.Object, _queryDispatcherMock.Object, _optionsMock.Object, _logger);
         }
 
         [Fact(DisplayName = "[UNIT][GRE-001]: Receiving Command")]
@@ -94,6 +101,28 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
             // Assert
             Assert.Equal(new Reply() { Data = JsonSerializer.Serialize(result) }, reply);
         }
+
+        [Fact(DisplayName = "[UNIT][GRE-004]: Handling Internal Errror (Command)")]
+        [GrpcEndpointFeature]
+        public async Task GrpcEndpoint_SendAsync_HandlingInternalError()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var exception = new AutoFaker<Exception>().Generate();
+            var correlationId = Ulid.NewUlid();
+            var options = new AutoFaker<ServiceOptions>().Generate();
+
+            _requestContextMock.SetupGet(rca => rca.CorrelationId).Returns(correlationId);
+            _deserializerMock.Setup().ReturnsAsync(new AutoFaker<TestCommand>().Generate());
+            _commandDispatcherMock.Setup().ThrowsAsync(exception);
+            _optionsMock.SetupGet(o => o.CurrentValue).Returns(options);
+
+            // Act
+            // Assert
+            RpcException result = await Assert.ThrowsAsync<RpcException>(async () => await sut.SendAsync(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend()));
+            GrpcEndpointAssert.InternalError(result);
+            GrpcEndpointAssert.ErrorInfo(result, options.Name, correlationId);
+        }
     }
 
     [RequestVersion("v1")]
@@ -110,6 +139,39 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
         public record Result
         {
             public required string Message { get; init; }
+        }
+    }
+
+    file static class GrpcEndpointAssert
+    {
+        public static void InternalError(RpcException exception)
+        {
+            var status = exception.GetRpcStatus();
+
+            Assert.Equal((int)StatusCode.Internal, status!.Code);
+            Assert.Equal("An internal server error occured", status.Message);
+        }
+
+        public static void ErrorInfo(RpcException exception, string domain, Ulid correlationId)
+        {
+            var errorInfo = exception.GetRpcStatus()!.GetDetail<ErrorInfo>();
+
+            Assert.Equal(domain, errorInfo.Domain);
+            Assert.Equal("INTERNAL_SERVER_ERROR", errorInfo.Reason);
+            Assert.Equal(correlationId, Ulid.Parse(errorInfo.Metadata["Ironyx.ErrorInfo.CorrelationId"]));
+        }
+    }
+
+    file static class GrpcEndpointTestExtensions
+    {
+        public static ISetup<IRequestDeserializer, Task<dynamic>> Setup(this Mock<IRequestDeserializer> mock)
+        {
+            return mock.Setup(d => d.DeserializeAsync(It.IsAny<Envelop>(), It.IsAny<CancellationToken>()));
+        }
+
+        public static ISetup<ICommandDispatcher, Task> Setup(this Mock<ICommandDispatcher> mock)
+        {
+            return mock.Setup(d => d.DispatchAsync(It.IsAny<TestCommand>(), It.IsAny<CancellationToken>()));
         }
     }
 }
