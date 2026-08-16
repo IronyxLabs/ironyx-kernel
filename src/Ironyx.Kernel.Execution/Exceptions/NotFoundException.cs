@@ -2,6 +2,9 @@
 {
     public class NotFoundException : Exception
     {
+        public string? ResourceType { get; set; }
+        public string? ResourceName { get; set; }
+
         public NotFoundException() : base()
         {
         }

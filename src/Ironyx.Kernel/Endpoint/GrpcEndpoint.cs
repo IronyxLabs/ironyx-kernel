@@ -45,11 +45,19 @@ namespace Ironyx.Kernel.Receivers
             {
                 await _commandDispatcher.DispatchAsync(await _deserializer.DeserializeAsync(envelop, context.CancellationToken), context.CancellationToken);
             }
+            catch (NotFoundException exception)
+            {
+                _logger.Error(exception);
+                throw exception.NotFound()
+                                    .ErrorInfo(_serviceOptions.CurrentValue.Name, "RESOURCE_NOT_FOUND", _requestContext.CorrelationId)
+                                    .ResourceInfo(_serviceOptions.CurrentValue.Name, exception)
+                                    .ToRpcException();
+            }
             catch (Exception exception)
             {
                 _logger.Error(exception);
                 throw exception.InternalError()
-                                    .ErrorInfo(_serviceOptions.CurrentValue.Name, _requestContext.CorrelationId)
+                                    .ErrorInfo(_serviceOptions.CurrentValue.Name, "INTERNAL_SERVER_ERROR", _requestContext.CorrelationId)
                                     .ToRpcException();
             }
 
@@ -77,6 +85,15 @@ namespace Ironyx.Kernel.Receivers
 
     file static class GrpcEndpointExtensions
     {
+        public static Google.Rpc.Status NotFound(this NotFoundException exception)
+        {
+            return new Google.Rpc.Status()
+            {
+                Code = (int)StatusCode.NotFound,
+                Message = exception.Message
+            };
+        }
+
         public static Google.Rpc.Status InternalError(this Exception exception)
         {
             return new Google.Rpc.Status()
@@ -86,16 +103,31 @@ namespace Ironyx.Kernel.Receivers
             };
         }
 
-        public static Google.Rpc.Status ErrorInfo(this Google.Rpc.Status status, string domain, Ulid correlationId)
+        public static Google.Rpc.Status ErrorInfo(this Google.Rpc.Status status, string domain, string reason, Ulid correlationId)
         {
             var errorInfo = new ErrorInfo()
             {
                 Domain = domain,
-                Reason = "INTERNAL_SERVER_ERROR"
+                Reason = reason
             };
             errorInfo.Metadata.Add(ErrorInfoConstants.CorrelationId, correlationId.ToString());
 
             status.Details.Add(Any.Pack(errorInfo));
+
+            return status;
+        }
+
+        public static Google.Rpc.Status ResourceInfo(this Google.Rpc.Status status, string owner, NotFoundException exception)
+        {
+            var resourceInfo = new ResourceInfo()
+            {
+                Owner = owner,
+                ResourceType = exception.ResourceType,
+                ResourceName = exception.ResourceName,
+                Description = exception.Message
+            };
+
+            status.Details.Add(Any.Pack(resourceInfo));
 
             return status;
         }

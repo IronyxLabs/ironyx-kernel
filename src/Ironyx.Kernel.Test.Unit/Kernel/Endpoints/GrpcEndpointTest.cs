@@ -121,7 +121,30 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
             // Assert
             RpcException result = await Assert.ThrowsAsync<RpcException>(async () => await sut.SendAsync(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend()));
             GrpcEndpointAssert.InternalError(result);
-            GrpcEndpointAssert.ErrorInfo(result, options.Name, correlationId);
+            GrpcEndpointAssert.ErrorInfo(result, options.Name, "INTERNAL_SERVER_ERROR", correlationId);
+        }
+
+        [Fact(DisplayName = "[UNIT][GRE-005]: Handling Not Found Error (Command)")]
+        [GrpcEndpointFeature]
+        public async Task GrpcEndpoint_SendAsync_HandlingNotFound()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var exception = new AutoFaker<NotFoundException>().Generate();
+            var correlationId = Ulid.NewUlid();
+            var options = new AutoFaker<ServiceOptions>().Generate();
+
+            _requestContextMock.SetupGet(rca => rca.CorrelationId).Returns(correlationId);
+            _deserializerMock.Setup().ReturnsAsync(new AutoFaker<TestCommand>().Generate());
+            _commandDispatcherMock.Setup().ThrowsAsync(exception);
+            _optionsMock.SetupGet(o => o.CurrentValue).Returns(options);
+
+            // Act
+            // Assert
+            RpcException result = await Assert.ThrowsAsync<RpcException>(async () => await sut.SendAsync(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend()));
+            GrpcEndpointAssert.NotFound(exception, result);
+            GrpcEndpointAssert.ErrorInfo(result, options.Name, "RESOURCE_NOT_FOUND", correlationId);
+            GrpcEndpointAssert.ResourceInfo(exception, result, options.Name);
         }
     }
 
@@ -144,6 +167,14 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
 
     file static class GrpcEndpointAssert
     {
+        public static void NotFound(NotFoundException expected, RpcException exception)
+        {
+            var status = exception.GetRpcStatus();
+
+            Assert.Equal((int)StatusCode.NotFound, status!.Code);
+            Assert.Equal(expected.Message, status.Message);
+        }
+
         public static void InternalError(RpcException exception)
         {
             var status = exception.GetRpcStatus();
@@ -152,13 +183,23 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
             Assert.Equal("An internal server error occured", status.Message);
         }
 
-        public static void ErrorInfo(RpcException exception, string domain, Ulid correlationId)
+        public static void ErrorInfo(RpcException exception, string domain, string reason, Ulid correlationId)
         {
             var errorInfo = exception.GetRpcStatus()!.GetDetail<ErrorInfo>();
 
             Assert.Equal(domain, errorInfo.Domain);
-            Assert.Equal("INTERNAL_SERVER_ERROR", errorInfo.Reason);
+            Assert.Equal(reason, errorInfo.Reason);
             Assert.Equal(correlationId, Ulid.Parse(errorInfo.Metadata["Ironyx.ErrorInfo.CorrelationId"]));
+        }
+
+        public static void ResourceInfo(NotFoundException expected, RpcException exception, string owner)
+        {
+            var resourceInfo = exception.GetRpcStatus()!.GetDetail<ResourceInfo>();
+
+            Assert.Equal(owner, resourceInfo.Owner);
+            Assert.Equal(expected.ResourceType, resourceInfo.ResourceType);
+            Assert.Equal(expected.ResourceName, resourceInfo.ResourceName);
+            Assert.Equal(expected.Message, resourceInfo.Description);
         }
     }
 
