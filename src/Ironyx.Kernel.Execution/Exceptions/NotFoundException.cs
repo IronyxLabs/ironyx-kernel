@@ -1,10 +1,9 @@
-﻿namespace Ironyx.Kernel
-{
-    public class NotFoundException : Exception
-    {
-        public string? ResourceType { get; set; }
-        public string? ResourceName { get; set; }
+﻿using Ironyx.Kernel.Execution.Exceptions;
 
+namespace Ironyx.Kernel
+{
+    public class NotFoundException : ResourceException
+    {
         public NotFoundException() : base()
         {
         }

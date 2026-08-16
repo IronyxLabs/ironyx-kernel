@@ -1,6 +1,8 @@
-﻿namespace Ironyx.Kernel
+﻿using Ironyx.Kernel.Execution.Exceptions;
+
+namespace Ironyx.Kernel
 {
-    public class ConflictException : Exception
+    public class ConflictException : ResourceException
     {
         public ConflictException() : base()
         {

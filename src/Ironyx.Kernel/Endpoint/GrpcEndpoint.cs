@@ -2,6 +2,7 @@
 using Google.Rpc;
 using Grpc.Core;
 using Ironyx.Kernel.Execution.Dispatchers;
+using Ironyx.Kernel.Execution.Exceptions;
 using Ironyx.Kernel.Extractors;
 using Ironyx.Kernel.Monitoring;
 using Ironyx.Kernel.Options;
@@ -45,6 +46,22 @@ namespace Ironyx.Kernel.Receivers
             {
                 await _commandDispatcher.DispatchAsync(await _deserializer.DeserializeAsync(envelop, context.CancellationToken), context.CancellationToken);
             }
+            catch (BusinessRuleException exception)
+            {
+                _logger.Error(exception);
+                throw exception.BusinessRuleViolation()
+                                    .ErrorInfo(_serviceOptions.CurrentValue.Name, "BUSINESS_RULE_VIOLATION", _requestContext.CorrelationId)
+                                    .ResourceInfo(_serviceOptions.CurrentValue.Name, exception)
+                                    .ToRpcException();
+            }
+            catch (ConflictException exception)
+            {
+                _logger.Error(exception);
+                throw exception.Conflict()
+                                    .ErrorInfo(_serviceOptions.CurrentValue.Name, "CONFLICT", _requestContext.CorrelationId)
+                                    .ResourceInfo(_serviceOptions.CurrentValue.Name, exception)
+                                    .ToRpcException();
+            }
             catch (NotFoundException exception)
             {
                 _logger.Error(exception);
@@ -85,6 +102,34 @@ namespace Ironyx.Kernel.Receivers
 
     file static class GrpcEndpointExtensions
     {
+        public static Google.Rpc.Status BusinessRuleViolation(this BusinessRuleException exception)
+        {
+            var status = new Google.Rpc.Status()
+            {
+                Code = (int)StatusCode.FailedPrecondition,
+                Message = exception.Message
+            };
+
+            var failure = new PreconditionFailure();
+            failure.Violations.Add(new PreconditionFailure.Types.Violation
+            {
+                Type = exception.ErrorCode,
+                Subject = exception.Subject,
+                Description = exception.Message
+            });
+
+            status.Details.Add(Any.Pack(failure));
+
+            return status;
+        }
+        public static Google.Rpc.Status Conflict(this ConflictException exception)
+        {
+            return new Google.Rpc.Status()
+            {
+                Code = (int)StatusCode.AlreadyExists,
+                Message = exception.Message
+            };
+        }
         public static Google.Rpc.Status NotFound(this NotFoundException exception)
         {
             return new Google.Rpc.Status()
@@ -117,7 +162,7 @@ namespace Ironyx.Kernel.Receivers
             return status;
         }
 
-        public static Google.Rpc.Status ResourceInfo(this Google.Rpc.Status status, string owner, NotFoundException exception)
+        public static Google.Rpc.Status ResourceInfo(this Google.Rpc.Status status, string owner, ResourceException exception)
         {
             var resourceInfo = new ResourceInfo()
             {

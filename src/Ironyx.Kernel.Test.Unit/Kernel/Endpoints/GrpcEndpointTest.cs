@@ -2,6 +2,7 @@
 using Google.Rpc;
 using Grpc.Core;
 using Ironyx.Kernel.Execution.Dispatchers;
+using Ironyx.Kernel.Execution.Exceptions;
 using Ironyx.Kernel.Extractors;
 using Ironyx.Kernel.Options;
 using Ironyx.Kernel.Receivers;
@@ -146,6 +147,52 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
             GrpcEndpointAssert.ErrorInfo(result, options.Name, "RESOURCE_NOT_FOUND", correlationId);
             GrpcEndpointAssert.ResourceInfo(exception, result, options.Name);
         }
+
+        [Fact(DisplayName = "[UNIT][GRE-006]: Handling Conflict Error (Command)")]
+        [GrpcEndpointFeature]
+        public async Task GrpcEndpoint_SendAsync_HandlingConflictError()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var exception = new AutoFaker<ConflictException>().Generate();
+            var correlationId = Ulid.NewUlid();
+            var options = new AutoFaker<ServiceOptions>().Generate();
+
+            _requestContextMock.SetupGet(rca => rca.CorrelationId).Returns(correlationId);
+            _deserializerMock.Setup().ReturnsAsync(new AutoFaker<TestCommand>().Generate());
+            _commandDispatcherMock.Setup().ThrowsAsync(exception);
+            _optionsMock.SetupGet(o => o.CurrentValue).Returns(options);
+
+            // Act
+            // Assert
+            RpcException result = await Assert.ThrowsAsync<RpcException>(async () => await sut.SendAsync(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend()));
+            GrpcEndpointAssert.Conflict(exception, result);
+            GrpcEndpointAssert.ErrorInfo(result, options.Name, "CONFLICT", correlationId);
+            GrpcEndpointAssert.ResourceInfo(exception, result, options.Name);
+        }
+
+        [Fact(DisplayName = "[UNIT][GRE-007]: Handling Business Rule Error (Command)")]
+        [GrpcEndpointFeature]
+        public async Task GrpcEndpoint_SendAsync_HandlingBusinessRuleError()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var exception = new AutoFaker<BusinessRuleException>().Generate();
+            var correlationId = Ulid.NewUlid();
+            var options = new AutoFaker<ServiceOptions>().Generate();
+
+            _requestContextMock.SetupGet(rca => rca.CorrelationId).Returns(correlationId);
+            _deserializerMock.Setup().ReturnsAsync(new AutoFaker<TestCommand>().Generate());
+            _commandDispatcherMock.Setup().ThrowsAsync(exception);
+            _optionsMock.SetupGet(o => o.CurrentValue).Returns(options);
+
+            // Act
+            // Assert
+            RpcException result = await Assert.ThrowsAsync<RpcException>(async () => await sut.SendAsync(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend()));
+            GrpcEndpointAssert.BusinessRuleViolation(exception, result);
+            GrpcEndpointAssert.ErrorInfo(result, options.Name, "BUSINESS_RULE_VIOLATION", correlationId);
+            GrpcEndpointAssert.ResourceInfo(exception, result, options.Name);
+        }
     }
 
     [RequestVersion("v1")]
@@ -167,6 +214,24 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
 
     file static class GrpcEndpointAssert
     {
+        public static void BusinessRuleViolation(BusinessRuleException expected, RpcException exception)
+        {
+            var status = exception.GetRpcStatus();
+            var preconditionFailure = status!.GetDetail<PreconditionFailure>();
+
+            Assert.Equal((int)StatusCode.FailedPrecondition, status!.Code);
+            Assert.Equal(expected.Message, status.Message);
+            Assert.Equal(expected.ErrorCode, preconditionFailure.Violations[0].Type);
+            Assert.Equal(expected.Subject, preconditionFailure.Violations[0].Subject);
+            Assert.Equal(expected.Message, preconditionFailure.Violations[0].Description);
+        }
+        public static void Conflict(ConflictException expected, RpcException exception)
+        {
+            var status = exception.GetRpcStatus();
+
+            Assert.Equal((int)StatusCode.AlreadyExists, status!.Code);
+            Assert.Equal(expected.Message, status.Message);
+        }
         public static void NotFound(NotFoundException expected, RpcException exception)
         {
             var status = exception.GetRpcStatus();
@@ -192,7 +257,7 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
             Assert.Equal(correlationId, Ulid.Parse(errorInfo.Metadata["Ironyx.ErrorInfo.CorrelationId"]));
         }
 
-        public static void ResourceInfo(NotFoundException expected, RpcException exception, string owner)
+        public static void ResourceInfo(ResourceException expected, RpcException exception, string owner)
         {
             var resourceInfo = exception.GetRpcStatus()!.GetDetail<ResourceInfo>();
 
