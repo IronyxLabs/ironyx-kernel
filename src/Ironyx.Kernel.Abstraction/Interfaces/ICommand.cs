@@ -1,6 +1,6 @@
 ﻿namespace Ironyx.Kernel.Abstraction.Interfaces
 {
-    public interface ICommand
+    public interface ICommand : IRequest
     {
     }
 }

@@ -1,4 +1,5 @@
-﻿using Ironyx.Kernel.Execution.Senders;
+﻿using FluentValidation;
+using Ironyx.Kernel.Execution.Senders;
 
 namespace Ironyx.Kernel.Sample.Handlers
 {
@@ -7,6 +8,14 @@ namespace Ironyx.Kernel.Sample.Handlers
     {
         public string Message { get; init; } = null!;
         public EventResetMode TestEnum { get; init; }
+    }
+
+    public class SampleCommandValidator : AbstractValidator<SampleCommand>
+    {
+        public SampleCommandValidator()
+        {
+            RuleFor(c => c.Message).NotEqual("INVALID_INPUT");
+        }
     }
 
     public class SampleCommandHandler : ICommandHandler<SampleCommand>
@@ -23,6 +32,7 @@ namespace Ironyx.Kernel.Sample.Handlers
             if (command.Message == "FORWARD") await _sender.SendAsync(new SampleCommand { Message = "Hello from CommandSender!", TestEnum = command.TestEnum }, cancellationToken);
 
             Console.WriteLine($"Message received: {command.Message} (TestEnum: {command.TestEnum})");
+            throw new BusinessRuleException("BUSINESS_001", "Sample.Command", "Test Business Exception");
         }
     }
 }

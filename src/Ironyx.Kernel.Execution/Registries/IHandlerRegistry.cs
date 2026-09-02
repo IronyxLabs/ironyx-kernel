@@ -2,8 +2,8 @@
 {
     public interface IHandlerRegistry
     {
-        Type this[Type type] { get; }
+        HandlerTypeDescription this[Type type] { get; }
 
-        void Add(Type command, Type handler);
+        void Add(Type command, Type handler, IEnumerable<Type> preHandlers);
     }
 }

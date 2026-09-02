@@ -1,4 +1,5 @@
-﻿using Ironyx.Kernel.Execution.Registries;
+﻿using Ironyx.Kernel.Execution.Behaviors;
+using Ironyx.Kernel.Execution.Registries;
 
 namespace Ironyx.Kernel.Test.Unit.Execution.Registries
 {
@@ -15,12 +16,14 @@ namespace Ironyx.Kernel.Test.Unit.Execution.Registries
         {
             // Arrange
             var sut = CreateSUT();
+            var description = new HandlerTypeDescription { Handler = typeof(TestCommand), PreHandlers = [typeof(PreTestCommandHandler)] };
 
             // Act
-            sut.Add(typeof(TestCommand), typeof(TestCommandHandler));
+            sut.Add(description.Handler, description.Handler, description.PreHandlers);
 
             // Assert
-            Assert.Equal(typeof(TestCommandHandler), sut[typeof(TestCommand)]);
+            Assert.Equal(description.Handler, sut[typeof(TestCommand)].Handler);
+            Assert.Single(description.PreHandlers, ph => ph == typeof(PreTestCommandHandler));
         }
 
         [Fact(DisplayName = "[UNIT][CHR-002]: Handler has already been registered")]
@@ -30,11 +33,11 @@ namespace Ironyx.Kernel.Test.Unit.Execution.Registries
             // Arrange
             var sut = CreateSUT();
 
-            sut.Add(typeof(TestCommand), typeof(TestCommandHandler));
+            sut.Add(typeof(TestCommand), typeof(TestCommandHandler), []);
 
             // Act
             // Assert
-            Assert.Throws<InvalidOperationException>(() => sut.Add(typeof(TestCommand), typeof(TestCommandHandler)));
+            Assert.Throws<InvalidOperationException>(() => sut.Add(typeof(TestCommand), typeof(TestCommandHandler), []));
         }
 
         [Fact(DisplayName = "[UNIT][CHR-003]: Handler has not been registered")]
@@ -53,6 +56,11 @@ namespace Ironyx.Kernel.Test.Unit.Execution.Registries
     file record TestCommand : Command { }
 
     file class TestCommandHandler : ICommandHandler<TestCommand>
+    {
+        public async Task HandleAsync(TestCommand command, CancellationToken cancellationToken) => throw new NotImplementedException();
+    }
+
+    file class PreTestCommandHandler : IPreHandler<TestCommand>
     {
         public async Task HandleAsync(TestCommand command, CancellationToken cancellationToken) => throw new NotImplementedException();
     }

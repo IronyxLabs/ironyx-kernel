@@ -1,9 +1,15 @@
-﻿using Grpc.Core;
+﻿using FluentValidation;
+using Google.Protobuf.WellKnownTypes;
+using Google.Rpc;
+using Grpc.Core;
 using Ironyx.Kernel.Execution.Dispatchers;
+using Ironyx.Kernel.Execution.Exceptions;
 using Ironyx.Kernel.Extractors;
 using Ironyx.Kernel.Monitoring;
+using Ironyx.Kernel.Options;
 using Ironyx.Kernel.Serializers;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 
@@ -17,15 +23,17 @@ namespace Ironyx.Kernel.Receivers
         private readonly IRequestContextAccessor _requestContext;
         private readonly ICommandDispatcher _commandDispatcher;
         private readonly IQueryDispatcher _queryDispatcher;
+        private readonly IOptionsMonitor<ServiceOptions> _serviceOptions;
         private readonly LogContext.GrpEndpointLogContext _logger;
 
-        public GrpcEndpoint(IRequestDeserializer deserilaizer, IExtractor extractor, IRequestContextAccessor requestContext, ICommandDispatcher commandDispatcher, IQueryDispatcher queryDispatcher, ILogger<GrpcEndpoint> logger)
+        public GrpcEndpoint(IRequestDeserializer deserilaizer, IExtractor extractor, IRequestContextAccessor requestContext, ICommandDispatcher commandDispatcher, IQueryDispatcher queryDispatcher, IOptionsMonitor<ServiceOptions> serviceOptions, ILogger<GrpcEndpoint> logger)
         {
             _deserializer = deserilaizer;
             _extractor = extractor;
             _requestContext = requestContext;
             _commandDispatcher = commandDispatcher;
             _queryDispatcher = queryDispatcher;
+            _serviceOptions = serviceOptions;
             _logger = new LogContext.GrpEndpointLogContext(logger);
         }
 
@@ -35,10 +43,50 @@ namespace Ironyx.Kernel.Receivers
             await _extractor.ExtractAsync(context.RequestHeaders, context.CancellationToken);
             using var scope = _logger.SetLogContext(_requestContext.CorrelationId, _requestContext.CausationId, _requestContext.RequestId);
 
-            await _commandDispatcher.DispatchAsync(await _deserializer.DeserializeAsync(envelop, context.CancellationToken), context.CancellationToken);
+            try
+            {
+                await _commandDispatcher.DispatchAsync(await _deserializer.DeserializeAsync(envelop, context.CancellationToken), context.CancellationToken);
+            }
+            catch (ValidationException exception)
+            {
+                throw exception.ValidationFailure()
+                        .ErrorInfo(_serviceOptions.CurrentValue.Name, "VALIDATION_FAILURE", _requestContext.CorrelationId)
+                        .ToRpcException();
+            }
+            catch (BusinessRuleException exception)
+            {
+                _logger.Error(exception);
+                throw exception.BusinessRuleViolation()
+                                    .ErrorInfo(_serviceOptions.CurrentValue.Name, "BUSINESS_RULE_VIOLATION", _requestContext.CorrelationId)
+                                    .ResourceInfo(_serviceOptions.CurrentValue.Name, exception)
+                                    .ToRpcException();
+            }
+            catch (ConflictException exception)
+            {
+                _logger.Error(exception);
+                throw exception.Conflict()
+                                    .ErrorInfo(_serviceOptions.CurrentValue.Name, "CONFLICT", _requestContext.CorrelationId)
+                                    .ResourceInfo(_serviceOptions.CurrentValue.Name, exception)
+                                    .ToRpcException();
+            }
+            catch (NotFoundException exception)
+            {
+                _logger.Error(exception);
+                throw exception.NotFound()
+                                    .ErrorInfo(_serviceOptions.CurrentValue.Name, "RESOURCE_NOT_FOUND", _requestContext.CorrelationId)
+                                    .ResourceInfo(_serviceOptions.CurrentValue.Name, exception)
+                                    .ToRpcException();
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception);
+                throw exception.InternalError()
+                                    .ErrorInfo(_serviceOptions.CurrentValue.Name, "INTERNAL_SERVER_ERROR", _requestContext.CorrelationId)
+                                    .ToRpcException();
+            }
 
             _logger.CommandAccepted();
-            return GrpcReply.Accepted.Reply;
+            return new Reply();
         }
 
         public override async Task<Reply> GetAsync(Envelop envelop, ServerCallContext context)
@@ -52,22 +100,104 @@ namespace Ironyx.Kernel.Receivers
             var result = await _queryDispatcher.DispatchAsync<dynamic>(query, context.CancellationToken);
 
             _logger.QueryExecuted();
-            return GrpcReply.Ok(JsonSerializer.Serialize(result)).Reply;
+            return new Reply()
+            {
+                Data = JsonSerializer.Serialize(result)
+            };
         }
     }
 
-    file sealed class GrpcReply
+    file static class GrpcEndpointExtensions
     {
-        public Status Status { get; }
-        public Reply Reply { get; }
-
-        public static GrpcReply Accepted => new(new Status(StatusCode.OK, "Ok"), new Reply() { Status = "ACCEPTED" });
-        public static GrpcReply Ok(string data) => new(new Status(StatusCode.OK, "Ok"), new Reply() { Status = "OK", Data = data });
-
-        public GrpcReply(Status status, Reply reply)
+        public static Google.Rpc.Status ValidationFailure(this ValidationException exception)
         {
-            Status = status;
-            Reply = reply;
+            var status = new Google.Rpc.Status()
+            {
+                Code = (int)StatusCode.InvalidArgument,
+                Message = exception.Message
+            };
+
+            var badRequest = new BadRequest();
+            badRequest.FieldViolations.AddRange(exception.Errors.Select(e => new BadRequest.Types.FieldViolation { Field = e.PropertyName, Description = e.ErrorMessage }));
+
+            status.Details.Add(Any.Pack(badRequest));
+
+            return status;
+        }
+
+        public static Google.Rpc.Status BusinessRuleViolation(this BusinessRuleException exception)
+        {
+            var status = new Google.Rpc.Status()
+            {
+                Code = (int)StatusCode.FailedPrecondition,
+                Message = exception.Message
+            };
+
+            var failure = new PreconditionFailure();
+            failure.Violations.Add(new PreconditionFailure.Types.Violation
+            {
+                Type = exception.ErrorCode,
+                Subject = exception.Subject,
+                Description = exception.Message
+            });
+
+            status.Details.Add(Any.Pack(failure));
+
+            return status;
+        }
+        public static Google.Rpc.Status Conflict(this ConflictException exception)
+        {
+            return new Google.Rpc.Status()
+            {
+                Code = (int)StatusCode.AlreadyExists,
+                Message = exception.Message
+            };
+        }
+        public static Google.Rpc.Status NotFound(this NotFoundException exception)
+        {
+            return new Google.Rpc.Status()
+            {
+                Code = (int)StatusCode.NotFound,
+                Message = exception.Message
+            };
+        }
+
+        public static Google.Rpc.Status InternalError(this Exception exception)
+        {
+            return new Google.Rpc.Status()
+            {
+                Code = (int)StatusCode.Internal,
+                Message = "An internal server error occured"
+            };
+        }
+
+        public static Google.Rpc.Status ErrorInfo(this Google.Rpc.Status status, string domain, string reason, Ulid correlationId)
+        {
+            var errorInfo = new ErrorInfo()
+            {
+                Domain = domain,
+                Reason = reason
+            };
+            errorInfo.Metadata.Add(ErrorInfoConstants.CorrelationId, correlationId.ToString());
+
+            status.Details.Add(Any.Pack(errorInfo));
+
+            return status;
+        }
+
+        public static Google.Rpc.Status ResourceInfo(this Google.Rpc.Status status, string owner, ResourceException exception)
+        {
+            var resourceInfo = new ResourceInfo()
+            {
+                Owner = owner,
+                ResourceType = exception.ResourceType,
+                ResourceName = exception.ResourceName,
+                Description = exception.Message
+            };
+
+            status.Details.Add(Any.Pack(resourceInfo));
+
+            return status;
         }
     }
 }

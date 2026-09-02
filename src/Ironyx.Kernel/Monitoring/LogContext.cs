@@ -1,6 +1,7 @@
 ﻿using Grpc.Core;
 using Ironyx.Kernel.Enrichers;
 using Ironyx.Kernel.Extractors;
+using Ironyx.Kernel.Handlers;
 using Ironyx.Kernel.Receivers;
 using Ironyx.Kernel.Senders;
 using Ironyx.Kernel.Serializers;
@@ -21,9 +22,12 @@ namespace Ironyx.Kernel.Monitoring
 
             [LoggerMessage(Level = LogLevel.Debug, Message = "Receiving query")]
             public partial void ReceivingQuery();
+
             [LoggerMessage(Level = LogLevel.Debug, Message = "Query has been executed")]
             public partial void QueryExecuted();
 
+            [LoggerMessage(Level = LogLevel.Error, Message = "Exception occured during handling request")]
+            public partial void Error(Exception exception);
 
             public IDisposable SetLogContext(Ulid correlationId, Ulid? causationId, Ulid requestId)
             {
@@ -88,6 +92,14 @@ namespace Ironyx.Kernel.Monitoring
 
             [LoggerMessage(Level = LogLevel.Trace, Message = "Metadata: {@Metadata}")]
             public partial void LogMetadata(Metadata metadata);
+
+            [LoggerMessage(Level = LogLevel.Error, Message = "Exception during sending request")]
+            public partial void LogError(Exception exception);
+        }
+
+        public partial class GrpcErrorHandlerLogContext(ILogger<GrpcErrorHandler> logger)
+        {
+
         }
     }
 }

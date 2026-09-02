@@ -1,0 +1,94 @@
+﻿using AutoBogus;
+using Bogus;
+using Google.Protobuf.WellKnownTypes;
+using Google.Rpc;
+using Grpc.Core;
+using Status = Google.Rpc.Status;
+
+namespace Ironyx.Kernel.Test.Unit.Kernel.Fakers
+{
+    public class StatusFaker : AutoFaker<Status>
+    {
+        public StatusFaker ValidationFailure()
+        {
+            RuleFor(s => s.Code, (int)StatusCode.InvalidArgument);
+            FinishWith((f, s) => s.AddErrorInfo("VALIDATION_FAILURE", f)
+                                    .AddValidationFailure());
+
+            return this;
+        }
+
+        public StatusFaker BusinessRule()
+        {
+            RuleFor(s => s.Code, (int)StatusCode.FailedPrecondition);
+            FinishWith((f, s) => s.AddErrorInfo("BUSINESS_RULE_VIOLATION", f)
+                                    .AddResourceInfo()
+                                    .AddPreconditionFail());
+
+            return this;
+        }
+
+        public StatusFaker InternalServerError()
+        {
+            RuleFor(s => s.Code, (int)StatusCode.Internal);
+            FinishWith((f, s) => s.AddErrorInfo("INTERNAL_SERVER_ERROR", f));
+
+            return this;
+        }
+
+        public StatusFaker NotFound()
+        {
+            RuleFor(s => s.Code, (int)StatusCode.NotFound);
+            FinishWith((f, s) => s.AddErrorInfo("RESOURCE_NOT_FOUND", f)
+                                    .AddResourceInfo());
+
+            return this;
+        }
+
+        public StatusFaker Conflict()
+        {
+            RuleFor(s => s.Code, (int)StatusCode.AlreadyExists);
+            FinishWith((f, s) => s.AddErrorInfo("CONFLICT", f)
+                                    .AddResourceInfo());
+
+            return this;
+        }
+    }
+
+    file static class StatusFakerExtensions
+    {
+        public static Status AddValidationFailure(this Status status)
+        {
+            status.Details.Add(Any.Pack(new AutoFaker<BadRequest>().FinishWith((f, pf) => pf.FieldViolations.Add(new AutoFaker<BadRequest.Types.FieldViolation>().Generate())).Generate()));
+
+            return status;
+        }
+
+        public static Status AddPreconditionFail(this Status status)
+        {
+            status.Details.Add(Any.Pack(new AutoFaker<PreconditionFailure>().FinishWith((f, pf) => pf.Violations.Add(new AutoFaker<PreconditionFailure.Types.Violation>().Generate())).Generate()));
+
+            return status;
+        }
+
+        public static Status AddResourceInfo(this Status status)
+        {
+            status.Details.Add(Any.Pack(new AutoFaker<ResourceInfo>().Generate()));
+
+            return status;
+        }
+
+        public static Status AddErrorInfo(this Status status, string reason, Faker faker)
+        {
+            var errorInfo = new ErrorInfo
+            {
+                Domain = faker.Company.CompanyName(),
+                Reason = reason
+            };
+            errorInfo.Metadata.Add("Ironyx.ErrorInfo.CorrelationId", faker.Random.Guid().ToString());
+            status.Details.Add(Any.Pack(errorInfo));
+
+            return status;
+        }
+    }
+}

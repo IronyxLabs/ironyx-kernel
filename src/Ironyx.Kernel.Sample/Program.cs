@@ -11,7 +11,7 @@ builder.Services.AddSerilog((_, configuration) => configuration.ReadFrom.Configu
 builder.UseKernel()
     .AddGrpc(5000)
 
-    .AddCommand<SampleCommand, SampleCommandHandler>()
+    .AddCommand<SampleCommand, SampleCommandHandler>(builder => builder.AddValidator<SampleCommandValidator>())
     .AddQuery<SampleQuery, SampleQuery.Result, SampleQueryHandler>()
 
     .AddCommandSender(new Uri("http://localhost:5000"));

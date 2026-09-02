@@ -2,9 +2,9 @@
 {
     public class HandlerRegistry : IHandlerRegistry, IHandlerTypeResolver
     {
-        private readonly Dictionary<Type, Type> _registrations = [];
+        private readonly Dictionary<Type, HandlerTypeDescription> _registrations = [];
 
-        public Type this[Type type]
+        public HandlerTypeDescription this[Type type]
         {
             get
             {
@@ -14,11 +14,11 @@
             }
         }
 
-        public void Add(Type command, Type handler)
+        public void Add(Type command, Type handler, IEnumerable<Type> preHandlers)
         {
             if (_registrations.ContainsKey(command)) throw new InvalidOperationException($"Handler has already been registered for type: {command}");
 
-            _registrations.Add(command, handler);
+            _registrations.Add(command, new HandlerTypeDescription { Handler = handler, PreHandlers = preHandlers });
         }
     }
 }

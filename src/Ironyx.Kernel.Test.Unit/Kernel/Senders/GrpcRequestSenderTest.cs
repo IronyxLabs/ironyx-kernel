@@ -1,7 +1,9 @@
 ﻿using AutoBogus;
 using Grpc.Core;
 using Ironyx.Kernel.Enrichers;
+using Ironyx.Kernel.Handlers;
 using Ironyx.Kernel.Senders;
+using Ironyx.Kernel.Test.Unit.Kernel.Fakers;
 using Microsoft.Extensions.Logging;
 using Moq;
 using System.Reflection;
@@ -18,6 +20,7 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Senders
         private readonly ILogger<GrpcRequestSender> _logger;
         private Mock<IGenericClient> _clientMock = null!;
         private Mock<IEnricher> _enricherMock = null!;
+        private Mock<IErrorHandler<RpcException>> _errorHandlerMock = null!;
 
         public GrpcRequestSenderTest(ITestOutputHelper outputHelper)
         {
@@ -30,8 +33,9 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Senders
         {
             _clientMock = new Mock<IGenericClient>();
             _enricherMock = new Mock<IEnricher>();
+            _errorHandlerMock = new Mock<IErrorHandler<RpcException>>();
 
-            return new GrpcRequestSender(_clientMock.Object, _enricherMock.Object, _logger);
+            return new GrpcRequestSender(_clientMock.Object, _enricherMock.Object, _errorHandlerMock.Object, _logger);
         }
 
         [Fact(DisplayName = "[UNIT][GRS-001]: Send Command")]
@@ -111,6 +115,42 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Senders
 
             // Assert
             _enricherMock.Verify(e => e.EnrichAsync(It.IsAny<Metadata>(), It.IsAny<CancellationToken>()), Times.Once());
+        }
+
+        [Fact(DisplayName = "[UNIT][GRS-006]: Handle Error for Commands")]
+        [RequestSendingFeature]
+        public async Task GrpcRequestSender_SendAsync_HandleErrorForCommands()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var exception = new RpcExceptionFaker().Generate();
+
+            _clientMock.Setup(c => c.SendAsync(It.IsAny<Envelop>(), It.IsAny<Metadata>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(exception);
+
+            // Act
+            await sut.SendAsync(new AutoFaker<TestCommand>().Generate(), default);
+
+            // Assert
+            _errorHandlerMock.Verify(e => e.Handle(exception), Times.Once());
+        }
+
+        [Fact(DisplayName = "[UNIT][GRS-008]: Handle Error for Queries")]
+        [RequestSendingFeature]
+        public async Task GrpcRequestSender_SendAsync_HandleErrorForQueries()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var exception = new RpcExceptionFaker().Generate();
+
+            _clientMock.Setup(c => c.GetAsync(It.IsAny<Envelop>(), It.IsAny<Metadata>(), It.IsAny<CancellationToken>()))
+                .ThrowsAsync(exception);
+
+            // Act
+            await sut.GetAsync<TestQuery, TestQuery.Result>(new AutoFaker<TestQuery>().Generate(), default);
+
+            // Assert
+            _errorHandlerMock.Verify(e => e.Handle(exception), Times.Once());
         }
     }
 
