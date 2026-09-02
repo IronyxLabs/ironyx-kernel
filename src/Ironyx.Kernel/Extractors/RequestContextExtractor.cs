@@ -53,11 +53,11 @@ namespace Ironyx.Kernel.Extractors
     {
         public static string? GetCorrelationId(this Metadata metadata)
         {
-            return metadata.SingleOrDefault(m => m.Key.Equals("correlation-id", StringComparison.InvariantCultureIgnoreCase))?.Value;
+            return metadata.SingleOrDefault(m => m.Key.Equals(RequestContextConstants.CorrelationId, StringComparison.InvariantCultureIgnoreCase))?.Value;
         }
         public static string? GetCausationId(this Metadata metadata)
         {
-            return metadata.SingleOrDefault(m => m.Key.Equals("causation-id", StringComparison.InvariantCultureIgnoreCase))?.Value;
+            return metadata.SingleOrDefault(m => m.Key.Equals(RequestContextConstants.CausationId, StringComparison.InvariantCultureIgnoreCase))?.Value;
         }
     }
 }

@@ -1,5 +1,11 @@
 ﻿namespace Ironyx.Kernel
 {
+    public static class RequestContextConstants
+    {
+        public const string CorrelationId = "x-ironyx-correlation-id";
+        public const string CausationId = "x-ironyx-causation-id";
+    }
+
     public static class BusinessViolationConstants
     {
         public const string Type = "Ironyx.BusinessViolation.Type";
