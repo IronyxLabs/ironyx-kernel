@@ -8,14 +8,14 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Fakers
 
         public MetadataFaker WithCausationId(Ulid value)
         {
-            _metadata.Add("causation-id", value.ToString());
+            _metadata.Add("x-ironyx-causation-id", value.ToString());
 
             return this;
         }
 
         public MetadataFaker WithCorrelationId(Ulid value)
         {
-            _metadata.Add("correlation-id", value.ToString());
+            _metadata.Add("x-ironyx-correlation-id", value.ToString());
 
             return this;
         }

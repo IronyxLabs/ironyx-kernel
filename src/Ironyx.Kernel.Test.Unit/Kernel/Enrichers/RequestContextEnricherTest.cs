@@ -41,7 +41,7 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Enrichers
             await sut.EnrichAsync(metadata, default);
 
             // Assert
-            Assert.Single(metadata, m => m.Key == "correlation-id" && Ulid.Parse(m.Value).Equals(correlationId));
+            Assert.Single(metadata, m => m.Key == "x-ironyx-correlation-id" && Ulid.Parse(m.Value).Equals(correlationId));
         }
 
         [Fact(DisplayName = "[UNIT][RCE-002]: Set CausationId")]
@@ -59,7 +59,7 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Enrichers
             await sut.EnrichAsync(metadata, default);
 
             // Assert
-            Assert.Single(metadata, m => m.Key == "causation-id" && Ulid.Parse(m.Value).Equals(requestId));
+            Assert.Single(metadata, m => m.Key == "x-ironyx-causation-id" && Ulid.Parse(m.Value).Equals(requestId));
         }
     }
 }

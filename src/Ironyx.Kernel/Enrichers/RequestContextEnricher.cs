@@ -18,10 +18,10 @@ namespace Ironyx.Kernel.Enrichers
         public Task EnrichAsync(Metadata metadata, CancellationToken cancellationToken)
         {
             _logger.LogCorrelationId(_requestContext.CorrelationId);
-            metadata.Add("correlation-id", _requestContext.CorrelationId.ToString());
+            metadata.Add(RequestContextConstants.CorrelationId, _requestContext.CorrelationId.ToString());
 
             _logger.LogCausationId(_requestContext.CausationId);
-            metadata.Add("causation-id", _requestContext.RequestId.ToString());
+            metadata.Add(RequestContextConstants.CausationId, _requestContext.RequestId.ToString());
 
             return Task.CompletedTask;
         }
