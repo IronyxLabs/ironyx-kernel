@@ -1,4 +1,6 @@
 ﻿using AutoBogus;
+using FluentValidation;
+using FluentValidation.Results;
 using Google.Rpc;
 using Grpc.Core;
 using Ironyx.Kernel.Execution.Dispatchers;
@@ -193,6 +195,28 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
             GrpcEndpointAssert.ErrorInfo(result, options.Name, "BUSINESS_RULE_VIOLATION", correlationId);
             GrpcEndpointAssert.ResourceInfo(exception, result, options.Name);
         }
+
+        [Fact(DisplayName = "[UNIT][GRE-008]: Handling Validation Failure (Command)")]
+        [GrpcEndpointFeature]
+        public async Task GrpcEndpoint_SendAsync_HandlingValidationFailure()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var exception = new AutoFaker<ValidationException>().Generate();
+            var correlationId = Ulid.NewUlid();
+            var options = new AutoFaker<ServiceOptions>().Generate();
+
+            _requestContextMock.SetupGet(rca => rca.CorrelationId).Returns(correlationId);
+            _deserializerMock.Setup().ReturnsAsync(new AutoFaker<TestCommand>().Generate());
+            _commandDispatcherMock.Setup().ThrowsAsync(exception);
+            _optionsMock.SetupGet(o => o.CurrentValue).Returns(options);
+
+            // Act
+            // Assert
+            RpcException result = await Assert.ThrowsAsync<RpcException>(async () => await sut.SendAsync(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend()));
+            GrpcEndpointAssert.ValidationFailure(exception, result);
+            GrpcEndpointAssert.ErrorInfo(result, options.Name, "VALIDATION_FAILURE", correlationId);
+        }
     }
 
     [RequestVersion("v1")]
@@ -214,6 +238,28 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
 
     file static class GrpcEndpointAssert
     {
+        public static void ValidationFailure(ValidationException expected, RpcException exception)
+        {
+            var status = exception.GetRpcStatus();
+            var badRequest = status!.GetDetail<BadRequest>();
+
+            Assert.Equal((int)StatusCode.InvalidArgument, status!.Code);
+            Assert.Equal(expected.Message, status.Message);
+            Assert.Collection(badRequest.FieldViolations, [.. expected.Errors.Inspect()]);
+        }
+
+        public static IEnumerable<Action<BadRequest.Types.FieldViolation>> Inspect(this IEnumerable<ValidationFailure> failures)
+        {
+            foreach (var failure in failures)
+            {
+                yield return (violation) =>
+                {
+                    Assert.Equal(failure.PropertyName, violation.Field);
+                    Assert.Equal(failure.ErrorMessage, violation.Description);
+                };
+            }
+        }
+
         public static void BusinessRuleViolation(BusinessRuleException expected, RpcException exception)
         {
             var status = exception.GetRpcStatus();

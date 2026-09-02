@@ -1,4 +1,5 @@
-﻿using Google.Protobuf.WellKnownTypes;
+﻿using FluentValidation;
+using Google.Protobuf.WellKnownTypes;
 using Google.Rpc;
 using Grpc.Core;
 using Ironyx.Kernel.Execution.Dispatchers;
@@ -45,6 +46,12 @@ namespace Ironyx.Kernel.Receivers
             try
             {
                 await _commandDispatcher.DispatchAsync(await _deserializer.DeserializeAsync(envelop, context.CancellationToken), context.CancellationToken);
+            }
+            catch (ValidationException exception)
+            {
+                throw exception.ValidationFailure()
+                        .ErrorInfo(_serviceOptions.CurrentValue.Name, "VALIDATION_FAILURE", _requestContext.CorrelationId)
+                        .ToRpcException();
             }
             catch (BusinessRuleException exception)
             {
@@ -102,6 +109,22 @@ namespace Ironyx.Kernel.Receivers
 
     file static class GrpcEndpointExtensions
     {
+        public static Google.Rpc.Status ValidationFailure(this ValidationException exception)
+        {
+            var status = new Google.Rpc.Status()
+            {
+                Code = (int)StatusCode.InvalidArgument,
+                Message = exception.Message
+            };
+
+            var badRequest = new BadRequest();
+            badRequest.FieldViolations.AddRange(exception.Errors.Select(e => new BadRequest.Types.FieldViolation { Field = e.PropertyName, Description = e.ErrorMessage }));
+
+            status.Details.Add(Any.Pack(badRequest));
+
+            return status;
+        }
+
         public static Google.Rpc.Status BusinessRuleViolation(this BusinessRuleException exception)
         {
             var status = new Google.Rpc.Status()
