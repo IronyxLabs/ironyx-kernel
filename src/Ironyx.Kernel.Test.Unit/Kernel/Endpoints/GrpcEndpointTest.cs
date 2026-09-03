@@ -217,6 +217,119 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
             GrpcEndpointAssert.ValidationFailure(exception, result);
             GrpcEndpointAssert.ErrorInfo(result, options.Name, "VALIDATION_FAILURE", correlationId);
         }
+
+        [Fact(DisplayName = "[UNIT][GRE-009]: Handling Internal Errror (Query)")]
+        [GrpcEndpointFeature]
+        public async Task GrpcEndpoint_GetAsync_HandlingInternalError()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var exception = new AutoFaker<Exception>().Generate();
+            var correlationId = Ulid.NewUlid();
+            var options = new AutoFaker<ServiceOptions>().Generate();
+
+            _requestContextMock.SetupGet(rca => rca.CorrelationId).Returns(correlationId);
+            _deserializerMock.Setup().ReturnsAsync(new AutoFaker<TestQuery>().Generate());
+            _queryDispatcherMock.Setup().ThrowsAsync(exception);
+            _optionsMock.SetupGet(o => o.CurrentValue).Returns(options);
+
+            // Act
+            // Assert
+            RpcException result = await Assert.ThrowsAsync<RpcException>(async () => await sut.GetAsync(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend()));
+            GrpcEndpointAssert.InternalError(result);
+            GrpcEndpointAssert.ErrorInfo(result, options.Name, "INTERNAL_SERVER_ERROR", correlationId);
+        }
+
+        [Fact(DisplayName = "[UNIT][GRE-010]: Handling Not Found Error (Query)")]
+        [GrpcEndpointFeature]
+        public async Task GrpcEndpoint_GetAsync_HandlingNotFound()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var exception = new AutoFaker<NotFoundException>().Generate();
+            var correlationId = Ulid.NewUlid();
+            var options = new AutoFaker<ServiceOptions>().Generate();
+
+            _requestContextMock.SetupGet(rca => rca.CorrelationId).Returns(correlationId);
+            _deserializerMock.Setup().ReturnsAsync(new AutoFaker<TestQuery>().Generate());
+            _queryDispatcherMock.Setup().ThrowsAsync(exception);
+            _optionsMock.SetupGet(o => o.CurrentValue).Returns(options);
+
+            // Act
+            // Assert
+            RpcException result = await Assert.ThrowsAsync<RpcException>(async () => await sut.GetAsync(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend()));
+            GrpcEndpointAssert.NotFound(exception, result);
+            GrpcEndpointAssert.ErrorInfo(result, options.Name, "RESOURCE_NOT_FOUND", correlationId);
+            GrpcEndpointAssert.ResourceInfo(exception, result, options.Name);
+        }
+
+        [Fact(DisplayName = "[UNIT][GRE-011]: Handling Conflict Error (Query)")]
+        [GrpcEndpointFeature]
+        public async Task GrpcEndpoint_GetAsync_HandlingConflictError()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var exception = new AutoFaker<ConflictException>().Generate();
+            var correlationId = Ulid.NewUlid();
+            var options = new AutoFaker<ServiceOptions>().Generate();
+
+            _requestContextMock.SetupGet(rca => rca.CorrelationId).Returns(correlationId);
+            _deserializerMock.Setup().ReturnsAsync(new AutoFaker<TestQuery>().Generate());
+            _queryDispatcherMock.Setup().ThrowsAsync(exception);
+            _optionsMock.SetupGet(o => o.CurrentValue).Returns(options);
+
+            // Act
+            // Assert
+            RpcException result = await Assert.ThrowsAsync<RpcException>(async () => await sut.GetAsync(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend()));
+            GrpcEndpointAssert.Conflict(exception, result);
+            GrpcEndpointAssert.ErrorInfo(result, options.Name, "CONFLICT", correlationId);
+            GrpcEndpointAssert.ResourceInfo(exception, result, options.Name);
+        }
+
+        [Fact(DisplayName = "[UNIT][GRE-012]: Handling Business Rule Error (Query)")]
+        [GrpcEndpointFeature]
+        public async Task GrpcEndpoint_QueryAsync_HandlingBusinessRuleError()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var exception = new AutoFaker<BusinessRuleException>().Generate();
+            var correlationId = Ulid.NewUlid();
+            var options = new AutoFaker<ServiceOptions>().Generate();
+
+            _requestContextMock.SetupGet(rca => rca.CorrelationId).Returns(correlationId);
+            _deserializerMock.Setup().ReturnsAsync(new AutoFaker<TestQuery>().Generate());
+            _queryDispatcherMock.Setup().ThrowsAsync(exception);
+            _optionsMock.SetupGet(o => o.CurrentValue).Returns(options);
+
+            // Act
+            // Assert
+            RpcException result = await Assert.ThrowsAsync<RpcException>(async () => await sut.GetAsync(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend()));
+            GrpcEndpointAssert.BusinessRuleViolation(exception, result);
+            GrpcEndpointAssert.ErrorInfo(result, options.Name, "BUSINESS_RULE_VIOLATION", correlationId);
+            GrpcEndpointAssert.ResourceInfo(exception, result, options.Name);
+        }
+
+        [Fact(DisplayName = "[UNIT][GRE-013]: Handling Validation Failure (Query)")]
+        [GrpcEndpointFeature]
+        public async Task GrpcEndpoint_GetAsync_HandlingValidationFailure()
+        {
+            // Arrange
+            var sut = CreateSUT();
+            var exception = new AutoFaker<ValidationException>().Generate();
+            var correlationId = Ulid.NewUlid();
+            var options = new AutoFaker<ServiceOptions>().Generate();
+
+            _requestContextMock.SetupGet(rca => rca.CorrelationId).Returns(correlationId);
+            _deserializerMock.Setup().ReturnsAsync(new AutoFaker<TestQuery>().Generate());
+            _queryDispatcherMock.Setup().ThrowsAsync(exception);
+            _optionsMock.SetupGet(o => o.CurrentValue).Returns(options);
+
+            // Act
+            // Assert
+            RpcException result = await Assert.ThrowsAsync<RpcException>(async () => await sut.GetAsync(new EnvelopFaker().Generate(), ServerCallContextFaker.CreateSend()));
+            GrpcEndpointAssert.ValidationFailure(exception, result);
+            GrpcEndpointAssert.ErrorInfo(result, options.Name, "VALIDATION_FAILURE", correlationId);
+        }
     }
 
     [RequestVersion("v1")]
@@ -324,6 +437,11 @@ namespace Ironyx.Kernel.Test.Unit.Kernel.Endpoints
         public static ISetup<ICommandDispatcher, Task> Setup(this Mock<ICommandDispatcher> mock)
         {
             return mock.Setup(d => d.DispatchAsync(It.IsAny<TestCommand>(), It.IsAny<CancellationToken>()));
+        }
+
+        public static ISetup<IQueryDispatcher, Task<dynamic>> Setup(this Mock<IQueryDispatcher> mock)
+        {
+            return mock.Setup(d => d.DispatchAsync<dynamic>(It.IsAny<TestQuery>(), It.IsAny<CancellationToken>()));
         }
     }
 }

@@ -6,7 +6,6 @@ using Ironyx.Kernel.Execution.Dispatchers;
 using Ironyx.Kernel.Execution.Exceptions;
 using Ironyx.Kernel.Extractors;
 using Ironyx.Kernel.Monitoring;
-using Ironyx.Kernel.Options;
 using Ironyx.Kernel.Serializers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -23,10 +22,10 @@ namespace Ironyx.Kernel.Receivers
         private readonly IRequestContextAccessor _requestContext;
         private readonly ICommandDispatcher _commandDispatcher;
         private readonly IQueryDispatcher _queryDispatcher;
-        private readonly IOptionsMonitor<ServiceOptions> _serviceOptions;
+        private readonly IOptionsMonitor<Options.ServiceOptions> _serviceOptions;
         private readonly LogContext.GrpEndpointLogContext _logger;
 
-        public GrpcEndpoint(IRequestDeserializer deserilaizer, IExtractor extractor, IRequestContextAccessor requestContext, ICommandDispatcher commandDispatcher, IQueryDispatcher queryDispatcher, IOptionsMonitor<ServiceOptions> serviceOptions, ILogger<GrpcEndpoint> logger)
+        public GrpcEndpoint(IRequestDeserializer deserilaizer, IExtractor extractor, IRequestContextAccessor requestContext, ICommandDispatcher commandDispatcher, IQueryDispatcher queryDispatcher, IOptionsMonitor<Options.ServiceOptions> serviceOptions, ILogger<GrpcEndpoint> logger)
         {
             _deserializer = deserilaizer;
             _extractor = extractor;
@@ -39,12 +38,12 @@ namespace Ironyx.Kernel.Receivers
 
         public override async Task<Reply> SendAsync(Envelop envelop, ServerCallContext context)
         {
-            _logger.ReceivingCommand();
-            await _extractor.ExtractAsync(context.RequestHeaders, context.CancellationToken);
-            using var scope = _logger.SetLogContext(_requestContext.CorrelationId, _requestContext.CausationId, _requestContext.RequestId);
-
             try
             {
+                _logger.ReceivingCommand();
+                await _extractor.ExtractAsync(context.RequestHeaders, context.CancellationToken);
+                using var scope = _logger.SetLogContext(_requestContext.CorrelationId, _requestContext.CausationId, _requestContext.RequestId);
+
                 await _commandDispatcher.DispatchAsync(await _deserializer.DeserializeAsync(envelop, context.CancellationToken), context.CancellationToken);
             }
             catch (ValidationException exception)
@@ -91,19 +90,60 @@ namespace Ironyx.Kernel.Receivers
 
         public override async Task<Reply> GetAsync(Envelop envelop, ServerCallContext context)
         {
-            _logger.ReceivingQuery();
-            var query = await _deserializer.DeserializeAsync(envelop, context.CancellationToken);
-
-            await _extractor.ExtractAsync(context.RequestHeaders, context.CancellationToken);
-            using var scope = _logger.SetLogContext(_requestContext.CorrelationId, _requestContext.CausationId, _requestContext.RequestId);
-
-            var result = await _queryDispatcher.DispatchAsync<dynamic>(query, context.CancellationToken);
-
-            _logger.QueryExecuted();
-            return new Reply()
+            try
             {
-                Data = JsonSerializer.Serialize(result)
-            };
+                _logger.ReceivingQuery();
+                var query = await _deserializer.DeserializeAsync(envelop, context.CancellationToken);
+
+                await _extractor.ExtractAsync(context.RequestHeaders, context.CancellationToken);
+                using var scope = _logger.SetLogContext(_requestContext.CorrelationId, _requestContext.CausationId, _requestContext.RequestId);
+
+                var result = await _queryDispatcher.DispatchAsync<dynamic>(query, context.CancellationToken);
+
+                _logger.QueryExecuted();
+                return new Reply()
+                {
+                    Data = JsonSerializer.Serialize(result)
+                };
+            }
+            catch (ValidationException exception)
+            {
+                throw exception.ValidationFailure()
+                        .ErrorInfo(_serviceOptions.CurrentValue.Name, "VALIDATION_FAILURE", _requestContext.CorrelationId)
+                        .ToRpcException();
+            }
+            catch (BusinessRuleException exception)
+            {
+                _logger.Error(exception);
+                throw exception.BusinessRuleViolation()
+                                    .ErrorInfo(_serviceOptions.CurrentValue.Name, "BUSINESS_RULE_VIOLATION", _requestContext.CorrelationId)
+                                    .ResourceInfo(_serviceOptions.CurrentValue.Name, exception)
+                                    .ToRpcException();
+            }
+            catch (ConflictException exception)
+            {
+                _logger.Error(exception);
+                throw exception.Conflict()
+                                    .ErrorInfo(_serviceOptions.CurrentValue.Name, "CONFLICT", _requestContext.CorrelationId)
+                                    .ResourceInfo(_serviceOptions.CurrentValue.Name, exception)
+                                    .ToRpcException();
+            }
+            catch (NotFoundException exception)
+            {
+                _logger.Error(exception);
+                throw exception.NotFound()
+                                    .ErrorInfo(_serviceOptions.CurrentValue.Name, "RESOURCE_NOT_FOUND", _requestContext.CorrelationId)
+                                    .ResourceInfo(_serviceOptions.CurrentValue.Name, exception)
+                                    .ToRpcException();
+            }
+            catch (Exception exception)
+            {
+                _logger.Error(exception);
+                throw exception.InternalError()
+                                    .ErrorInfo(_serviceOptions.CurrentValue.Name, "INTERNAL_SERVER_ERROR", _requestContext.CorrelationId)
+                                    .ToRpcException();
+            }
+
         }
     }
 
