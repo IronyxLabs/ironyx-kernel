@@ -18,7 +18,7 @@ namespace Ironyx.Kernel.Execution.Dispatchers
             _logger = logger;
         }
 
-        public async Task<TResult> DispatchAsync<TResult>(IQuery query, CancellationToken cancellationToken)
+        public async Task<TResult> DispatchAsync<TResult>(IRequest query, CancellationToken cancellationToken)
         {
             var type = query.GetType();
 

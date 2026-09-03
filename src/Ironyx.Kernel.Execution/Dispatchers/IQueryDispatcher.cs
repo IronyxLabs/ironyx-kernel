@@ -4,6 +4,6 @@ namespace Ironyx.Kernel.Execution.Dispatchers
 {
     public interface IQueryDispatcher
     {
-        Task<TResult> DispatchAsync<TResult>(IQuery query, CancellationToken cancellationToken);
+        Task<TResult> DispatchAsync<TResult>(IRequest query, CancellationToken cancellationToken);
     }
 }
