@@ -1,7 +1,9 @@
-﻿using Ironyx.Kernel.Execution;
+﻿using Grpc.Core;
+using Ironyx.Kernel.Execution;
 using Ironyx.Kernel.Execution.Behaviors;
 using Ironyx.Kernel.Execution.Registries;
 using Ironyx.Kernel.Execution.Senders;
+using Ironyx.Kernel.Handlers;
 using Ironyx.Kernel.Interceptors;
 using Ironyx.Kernel.Options;
 using Ironyx.Kernel.Registry;
@@ -76,6 +78,8 @@ namespace Ironyx.Kernel.Builders
                 options.Interceptors.Add<LoggerInterceptor>();
             });
             _builder.Services.AddTransient<IGenericClient, GrpcGenericClient>();
+
+            _builder.Services.AddTransient<IErrorHandler<RpcException>, GrpcErrorHandler>();
 
             _builder.WebHost.ConfigureKestrel(options =>
             {
