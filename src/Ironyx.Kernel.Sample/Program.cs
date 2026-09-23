@@ -14,7 +14,7 @@ builder.UseKernel()
     .AddCommand<SampleCommand, SampleCommandHandler>(builder => builder.AddValidator<SampleCommandValidator>())
     .AddQuery<SampleQuery, SampleQuery.Result, SampleQueryHandler>()
 
-    .AddCommandSender(new Uri("http://localhost:5000"));
+    .AddRequestSender(new Uri("http://localhost:5000"));
 
 var app = builder.Build();
 

@@ -62,7 +62,7 @@ namespace Ironyx.Kernel.Builders
             return this;
         }
 
-        public KernelBuilder AddCommandSender(Uri url)
+        public KernelBuilder AddRequestSender(Uri url)
         {
             _builder.Services.AddGrpcClient<GenericAPI.GenericAPIClient>(options => options.Address = url);
             _builder.Services.AddTransient<IRequestSender, GrpcRequestSender>();
@@ -83,7 +83,7 @@ namespace Ironyx.Kernel.Builders
 
             _builder.WebHost.ConfigureKestrel(options =>
             {
-                options.Listen(System.Net.IPAddress.Loopback, port, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
+                options.Listen(System.Net.IPAddress.Loopback, port, listenOptions => listenOptions.Protocols = HttpProtocols.Http1AndHttp2);
             });
 
             return this;
