@@ -1,16 +1,10 @@
-﻿using Grpc.Core;
-using Ironyx.Kernel.Execution;
+﻿using Ironyx.Kernel.Execution;
 using Ironyx.Kernel.Execution.Behaviors;
 using Ironyx.Kernel.Execution.Registries;
-using Ironyx.Kernel.Execution.Senders;
-using Ironyx.Kernel.Handlers;
-using Ironyx.Kernel.Interceptors;
 using Ironyx.Kernel.Options;
 using Ironyx.Kernel.Registry;
 using Ironyx.Kernel.Senders;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Ironyx.Kernel.Builders
@@ -62,29 +56,11 @@ namespace Ironyx.Kernel.Builders
             return this;
         }
 
-        public KernelBuilder AddCommandSender(Uri url)
+        public KernelBuilder AddGrpc(Action<GrpcBuilder> build)
         {
-            _builder.Services.AddGrpcClient<GenericAPI.GenericAPIClient>(options => options.Address = url);
-            _builder.Services.AddTransient<IRequestSender, GrpcRequestSender>();
-
-            return this;
-        }
-
-        public KernelBuilder AddGrpc(int port = 8080)
-        {
-            _builder.Services.AddGrpc(options =>
-            {
-                options.Interceptors.Add<ErrorHandlingInterceptor>();
-                options.Interceptors.Add<LoggerInterceptor>();
-            });
             _builder.Services.AddTransient<IGenericClient, GrpcGenericClient>();
 
-            _builder.Services.AddTransient<IErrorHandler<RpcException>, GrpcErrorHandler>();
-
-            _builder.WebHost.ConfigureKestrel(options =>
-            {
-                options.Listen(System.Net.IPAddress.Loopback, port, listenOptions => listenOptions.Protocols = HttpProtocols.Http2);
-            });
+            build(new GrpcBuilder(_builder));
 
             return this;
         }
