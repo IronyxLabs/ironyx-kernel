@@ -9,12 +9,11 @@ builder.Services.AddSerilog((_, configuration) => configuration.ReadFrom.Configu
 
 
 builder.UseKernel()
-    .AddGrpc(5000)
+    .AddGrpc(builder => builder.AddRequestReceiver(5000).AddRequestSender(new Uri("http://localhost:5000/")))
 
     .AddCommand<SampleCommand, SampleCommandHandler>(builder => builder.AddValidator<SampleCommandValidator>())
-    .AddQuery<SampleQuery, SampleQuery.Result, SampleQueryHandler>()
+    .AddQuery<SampleQuery, SampleQuery.Result, SampleQueryHandler>();
 
-    .AddRequestSender(new Uri("http://localhost:5000"));
 
 var app = builder.Build();
 
